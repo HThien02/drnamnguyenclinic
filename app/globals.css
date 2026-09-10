@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@500;600&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-serif: 'Noto Serif', 'Noto Serif Thai', 'Noto Serif Khmer', 'Noto Serif JP', 'DejaVu Serif', Georgia, serif;
+  --font-sans: 'Noto Sans', 'Noto Sans Thai', 'Noto Sans Lao', 'Noto Sans Khmer', 'Noto Sans CJK JP', 'DejaVu Sans', Arial, Tahoma, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+}
+
+:root { color-scheme: light; --background: #f6faff; --foreground: #172a42; --border: #dce8f2; --ring: #1873aa; --radius: 0.75rem; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: 'Noto Sans', 'Noto Sans Thai', 'Noto Sans Lao', 'Noto Sans Khmer', 'DejaVu Sans', Arial, Tahoma, sans-serif; }
+a { text-decoration: none; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #8bc5e6; outline-offset: 3px; }
+::selection { background: #b9dcf0; color: #0e3a63; }
+.result-card { will-change: transform, filter, opacity; transition: transform 600ms cubic-bezier(.25,1,.5,1), filter 600ms cubic-bezier(.25,1,.5,1), opacity 600ms cubic-bezier(.25,1,.5,1), box-shadow 600ms cubic-bezier(.25,1,.5,1); }
+.result-card.side { filter: blur(2px); opacity: 0.5; transform: scale(0.92); }
+.result-card.active { filter: blur(0); opacity: 1; transform: scale(1.02); box-shadow: 0 25px 50px rgba(14, 93, 148, 0.15); }
+@media (min-width: 768px) { .result-card.side:first-child { transform: translateX(4%) scale(0.92); } .result-card.side:last-child { transform: translateX(-4%) scale(0.92); } }
+@media (max-width: 767px) { .result-card.side { display: none; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

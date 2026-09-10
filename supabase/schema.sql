@@ -1,0 +1,94 @@
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Bookings table
+CREATE TABLE IF NOT EXISTS bookings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  service TEXT NOT NULL,
+  note TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'contacted', 'confirmed', 'cancelled')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Results table (Before/After images)
+CREATE TABLE IF NOT EXISTS results (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  image_url TEXT NOT NULL,
+  title TEXT NOT NULL,
+  detail TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Reviews table
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  quote TEXT NOT NULL,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Admin profiles table (for authentication)
+CREATE TABLE IF NOT EXISTS admin_profiles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  role TEXT NOT NULL DEFAULT 'admin',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+CREATE INDEX IF NOT EXISTS idx_bookings_created_at ON bookings(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_results_created_at ON results(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at DESC);
+
+-- Enable Row Level Security
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE results ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_profiles ENABLE ROW LEVEL SECURITY;
+
+-- Policies for bookings (public can read and create, admin can do everything)
+CREATE POLICY "Public can view bookings" ON bookings FOR SELECT USING (true);
+CREATE POLICY "Public can create bookings" ON bookings FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin can update bookings" ON bookings FOR UPDATE USING (true);
+CREATE POLICY "Admin can delete bookings" ON bookings FOR DELETE USING (true);
+
+-- Policies for results (public can read, admin can do everything)
+CREATE POLICY "Public can view results" ON results FOR SELECT USING (true);
+CREATE POLICY "Admin can insert results" ON results FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin can update results" ON results FOR UPDATE USING (true);
+CREATE POLICY "Admin can delete results" ON results FOR DELETE USING (true);
+
+-- Policies for reviews (public can read, admin can do everything)
+CREATE POLICY "Public can view reviews" ON reviews FOR SELECT USING (true);
+CREATE POLICY "Admin can insert reviews" ON reviews FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin can update reviews" ON reviews FOR UPDATE USING (true);
+CREATE POLICY "Admin can delete reviews" ON reviews FOR DELETE USING (true);
+
+-- Policies for admin_profiles (only authenticated admins can read)
+CREATE POLICY "Authenticated can view admin profiles" ON admin_profiles FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Service role can manage admin profiles" ON admin_profiles FOR ALL USING (auth.role() = 'service_role');
+
+-- Insert initial seed data
+INSERT INTO bookings (name, phone, service, note, status, created_at) VALUES
+  ('Nguyễn Thu Trang', '0912345678', 'Điều trị mụn & thâm sẹo', 'Da nhạy cảm, muốn khám vào sáng thứ 7', 'pending', '2026-09-09T08:30:00.000Z'),
+  ('Trần Văn Hoàng', '0988765432', 'Trẻ hóa da & Nâng cơ', 'Đã từng làm liệu trình nâng cơ 1 năm trước tại nước ngoài', 'contacted', '2026-09-08T14:15:00.000Z'),
+  ('Lê Hoàng Yến', '0903456789', 'Điều trị nám, tàn nhang', 'Hẹn lịch tư vấn trực tiếp cùng Bác sĩ Nam', 'confirmed', '2026-09-07T10:00:00.000Z')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO results (image_url, title, detail, created_at) VALUES
+  ('/images/before-after-result.png', 'Điều trị mụn & thâm sẹo', 'Kết quả sau liệu trình 12 tuần phác đồ kép', '2026-09-01T00:00:00.000Z'),
+  ('/images/before-after-surgery.png', 'Thẩm mỹ đường nét tự nhiên', 'Định hình viền hàm sau 6 tháng thực hiện', '2026-09-02T00:00:00.000Z'),
+  ('/images/before-after-result.png', 'Phục hồi da nhiễm corticoid', 'Hàng rào bảo vệ da hồi phục sau 8 tuần', '2026-09-03T00:00:00.000Z'),
+  ('/images/before-after-surgery.png', 'Trẻ hóa tầng sâu đa lớp', 'Cải thiện nếp nhăn và săn chắc da sau 4 tháng', '2026-09-04T00:00:00.000Z')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO reviews (quote, name, role, created_at) VALUES
+  ('Bác sĩ Nam tư vấn rất cặn kẽ, phân tích đúng nguyên nhân da bị tái phát mụn nhiều lần. Sau liệu trình 3 tháng, da mình khỏe và sáng hẳn ra.', 'Trần Minh Anh', 'Điều trị mụn & sẹo · 28 tuổi (TP.HCM)', '2026-09-01T00:00:00.000Z'),
+  ('Không gian phòng khám vô trùng, riêng tư và đội ngũ y tá cực kỳ chu đáo. Cảm nhận được sự tôn trọng và phác đồ chuyên biệt cho riêng mình.', 'Lê Thảo Nguyên', 'Trẻ hóa da tầng sâu · 35 tuổi (Hà Nội)', '2026-09-02T00:00:00.000Z'),
+  ('I traveled to Vietnam for skin treatment with Dr. Nam. Truly impressed by the medical professionalism, gentle technique, and remarkable results.', 'Sarah Jenkins', 'Medical Tourism · 32 years old (Australia)', '2026-09-03T00:00:00.000Z')
+ON CONFLICT DO NOTHING;
