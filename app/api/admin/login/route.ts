@@ -13,7 +13,8 @@ export async function POST(request: Request) {
         return NextResponse.json({
           success: true,
           message: 'Xác thực quản trị thành công',
-          token: 'clinic-admin-session-token',
+          // Keep the demo token aligned with verifyAdminToken so service CRUD works in fallback mode.
+          token: 'DRNAM2026',
           user: { email: 'admin@drnamnguyenclinic.com' },
         })
       }
