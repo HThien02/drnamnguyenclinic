@@ -117,12 +117,6 @@ export default function AdminPage() {
     }
 
     try {
-      const savedSections = localStorage.getItem('clinic-content')
-      if (savedSections) {
-        const parsed = JSON.parse(savedSections)
-        if (Array.isArray(parsed)) setSections(parsed)
-      }
-
       const savedTracking = localStorage.getItem('clinic-tracking')
       if (savedTracking) setTracking(JSON.parse(savedTracking))
 
@@ -200,7 +194,7 @@ export default function AdminPage() {
         setResults(data.results)
       }
     } catch (err) {
-      console.error('Lỗi tải kết quả điều trị:', err)
+      console.error('Lỗi tải k���t quả điều trị:', err)
     } finally {
       setLoadingResults(false)
     }
@@ -441,9 +435,6 @@ export default function AdminPage() {
     const next = sections.map((item) =>
       item.id === id ? { ...item, visible: !item.visible } : item
     )
-    setSections(next)
-    localStorage.setItem('clinic-content', JSON.stringify(next))
-
     try {
       const visibility = next.reduce<Record<string, boolean>>((result, item) => {
         result[item.id] = item.visible
@@ -459,6 +450,7 @@ export default function AdminPage() {
       })
       const data = await res.json()
       if (!res.ok || !data.success) throw new Error(data.error || 'Không thể lưu cấu hình hiển thị.')
+      setSections((current) => current.map((section) => ({ ...section, visible: data.visibility[section.id] === true })))
       setMessage('Đã cập nhật cấu hình hiển thị trang chủ.')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Không thể lưu cấu hình hiển thị.')

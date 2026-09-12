@@ -44,7 +44,20 @@ export async function updateSectionVisibility(visibility: SectionVisibility): Pr
   const rows = Object.entries(normalized).map(([section_key, is_visible]) => ({ section_key, is_visible, updated_at: new Date().toISOString() }))
   const { error } = await supabase.from('section_visibility').upsert(rows, { onConflict: 'section_key' })
   if (error) throw error
-  return { ...normalized }
+
+  const { data: savedRows, error: readError } = await supabase
+    .from('section_visibility')
+    .select('section_key, is_visible')
+  if (readError) throw readError
+
+  const saved = (savedRows || []).reduce<SectionVisibility>((result, row) => {
+    if (Object.prototype.hasOwnProperty.call(defaultSectionVisibility, row.section_key)) {
+      result[row.section_key] = row.is_visible === true
+    }
+    return result
+  }, { ...defaultSectionVisibility })
+
+  return saved
 }
 
 const initialSeedBookings: Booking[] = [
