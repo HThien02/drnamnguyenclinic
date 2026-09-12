@@ -14,15 +14,24 @@ export interface Booking {
 }
 
 export type ServiceCategory = 'facial' | 'body'
+export type PriceDisplayType = 'from' | 'fixed' | 'contact'
 
 export interface ServiceItem {
   id?: string
+  name: string
   slug: string
-  title: string
-  shortDescription: string
-  description: string
-  image: string
   category: ServiceCategory
+  shortDescription: string
+  image: string
+  highlights: string[]
+  suitableFor: string[]
+  techniques: string[]
+  recovery: string
+  risksAndConsiderations: string[]
+  preConsultation: string
+  price: number | null
+  currency: string
+  priceDisplayType: PriceDisplayType
   displayOrder: number
   isActive: boolean
   createdAt?: string

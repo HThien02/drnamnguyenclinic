@@ -41,6 +41,7 @@ export default function Home() {
   const [results, setResults] = useState<ResultItem[]>(initialResults)
   const [reviews, setReviews] = useState<ReviewItem[]>(initialReviews)
   const [services, setServices] = useState<ServiceItem[]>([])
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null)
 
   // Booking form state
   const [formName, setFormName] = useState('')
@@ -369,38 +370,31 @@ export default function Home() {
         </section>
       )}
 
-      {/* Services Section */}
+      {/* Signature Services */}
       {visibility.services !== false && (
         <section id="services" className="mx-auto max-w-[1320px] px-6 py-24 lg:px-10">
-          <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#1873aa]">
-            {t.services}
-          </p>
-          <h2 className="mb-14 max-w-[780px] font-serif text-4xl leading-[1.1] text-[#0e3a63] sm:text-5xl lg:text-6xl">
-            {t.servicesTitle}
-          </h2>
-          <div className="grid gap-6 md:grid-cols-3">
-            {(services.length > 0 ? services : []).map((service, index) => {
-              const Icon = service.category === 'facial' ? Sparkles : service.category === 'body' ? ShieldCheck : Check
-              return (
-                <article
-                  key={service.id || service.slug}
-                  className="group rounded-[28px] border border-[#d8e8f2] bg-white p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
-                >
-                  <div className="mb-10 flex items-center justify-between">
-                    <span className="font-mono text-sm font-bold text-[#7aaaca]">{String(index + 1).padStart(2, '0')}</span>
-                    <div className="flex size-12 items-center justify-center rounded-full bg-[#eaf5fb] text-[#1873aa] transition-colors group-hover:bg-[#0e5d94] group-hover:text-white">
-                      <Icon className="size-6" />
-                    </div>
-                  </div>
-                  <h3 className="font-serif text-2xl font-bold text-[#0e3a63]">
-                    {service.title}
-                  </h3>
-                  <p className="mt-4 text-sm leading-7 text-[#66829a]">{service.description}</p>
-                </article>
-              )
-            })}
+          <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#1873aa]">Signature Services</p>
+          <h2 className="mb-5 max-w-[780px] font-serif text-4xl leading-[1.1] text-[#0e3a63] sm:text-5xl lg:text-6xl">Comprehensive Aesthetic Solutions</h2>
+          <p className="mb-14 max-w-2xl text-base leading-7 text-[#66829a]">Thoughtful, individualized care plans guided by clinical assessment and your personal goals.</p>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {services.map((service, index) => (
+              <article key={service.id || service.slug} className="group overflow-hidden rounded-[28px] border border-[#d8e8f2] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+                <div className="relative aspect-[1.25] overflow-hidden bg-[#eaf5fb]"><img src={service.image} alt={service.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /><span className="absolute left-5 top-5 rounded-full bg-white/90 px-3 py-1 font-mono text-xs font-bold text-[#1873aa]">{String(index + 1).padStart(2, '0')}</span></div>
+                <div className="p-7"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1873aa]">{service.category}</p><h3 className="mt-2 font-serif text-2xl font-bold text-[#0e3a63]">{service.name}</h3><p className="mt-3 text-sm leading-7 text-[#66829a]">{service.shortDescription}</p><ul className="mt-5 flex flex-col gap-2 text-sm text-[#55738f]">{service.highlights.map((highlight) => <li key={highlight} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-[#1873aa]" />{highlight}</li>)}</ul><div className="mt-7 flex items-center justify-between gap-3 border-t border-[#e6eff5] pt-5"><span className="text-sm font-semibold text-[#0e3a63]">{service.priceDisplayType === 'contact' ? 'Contact for Price' : `${service.priceDisplayType === 'from' ? 'From ' : ''}${service.currency === 'USD' ? '$' : service.currency + ' '}${service.price?.toLocaleString()}`}</span><button type="button" onClick={() => setSelectedService(service)} className="rounded-full bg-[#0e5d94] px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#0c4e7d]">Consultation</button></div></div>
+              </article>
+            ))}
           </div>
         </section>
+      )}
+
+      {selectedService && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#0e3a63]/55 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedService(null) }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="service-dialog-title" className="relative max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[28px] bg-white shadow-2xl">
+            <button type="button" aria-label="Close consultation details" onClick={() => setSelectedService(null)} className="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full bg-white/90 text-[#0e3a63] shadow"><X className="size-5" /></button>
+            <img src={selectedService.image} alt="" className="h-56 w-full object-cover sm:h-72" />
+            <div className="p-6 sm:p-10"><p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1873aa]">{selectedService.category}</p><h2 id="service-dialog-title" className="mt-2 font-serif text-4xl text-[#0e3a63]">{selectedService.name}</h2><p className="mt-4 leading-7 text-[#66829a]">{selectedService.shortDescription}</p><div className="mt-8 grid gap-7 sm:grid-cols-2"><div><h3 className="font-serif text-xl font-bold text-[#0e3a63]">Suitable For</h3><ul className="mt-3 flex flex-col gap-2 text-sm leading-6 text-[#55738f]">{selectedService.suitableFor.map((item) => <li key={item} className="flex gap-2"><Check className="mt-1 size-4 shrink-0 text-[#1873aa]" />{item}</li>)}</ul></div><div><h3 className="font-serif text-xl font-bold text-[#0e3a63]">Main Techniques</h3><ul className="mt-3 flex flex-col gap-2 text-sm leading-6 text-[#55738f]">{selectedService.techniques.map((item) => <li key={item} className="flex gap-2"><Check className="mt-1 size-4 shrink-0 text-[#1873aa]" />{item}</li>)}</ul></div></div><div className="mt-8 grid gap-7 sm:grid-cols-2"><div><h3 className="font-serif text-xl font-bold text-[#0e3a63]">Recovery</h3><p className="mt-3 text-sm leading-7 text-[#55738f]">{selectedService.recovery}</p></div><div><h3 className="font-serif text-xl font-bold text-[#0e3a63]">Risks &amp; Considerations</h3><ul className="mt-3 flex flex-col gap-2 text-sm leading-6 text-[#55738f]">{selectedService.risksAndConsiderations.map((item) => <li key={item} className="flex gap-2"><Check className="mt-1 size-4 shrink-0 text-[#1873aa]" />{item}</li>)}</ul></div></div><details className="mt-8 rounded-2xl bg-[#f6faff] p-5"><summary className="cursor-pointer font-semibold text-[#0e3a63]">What should I prepare before my consultation?</summary><p className="mt-3 text-sm leading-7 text-[#55738f]">{selectedService.preConsultation}</p></details><div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#e6eff5] pt-6"><span className="font-serif text-2xl font-bold text-[#0e3a63]">{selectedService.priceDisplayType === 'contact' ? 'Contact for Price' : `Reference Price: ${selectedService.currency === 'USD' ? '$' : selectedService.currency + ' '}${selectedService.price?.toLocaleString()}`}</span><a href="#booking" onClick={() => setSelectedService(null)} className="rounded-full bg-[#0e5d94] px-6 py-3 text-xs font-semibold uppercase tracking-wider text-white">Book a Consultation</a></div></div>
+          </div>
+        </div>
       )}
 
       {/* Doctor Introduction Section */}

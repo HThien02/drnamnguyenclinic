@@ -26,7 +26,7 @@ import {
   User,
   X,
 } from 'lucide-react'
-import type { Booking, BookingStatus, ResultItem, ReviewItem, TrackingData, ContactSettings } from '@/types/clinic'
+import type { Booking, BookingStatus, ResultItem, ReviewItem, TrackingData, ContactSettings, ServiceItem } from '@/types/clinic'
 
 const defaultSections = [
   { id: 'hero', label: 'Hình ảnh & Giới thiệu Bác sĩ (Hero section)', visible: true },
@@ -45,7 +45,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [useEmailAuth, setUseEmailAuth] = useState(false)
   const [authed, setAuthed] = useState(false)
-  const [activeTab, setActiveTab] = useState<'bookings' | 'results' | 'reviews' | 'analytics' | 'visibility' | 'contact'>('bookings')
+  const [activeTab, setActiveTab] = useState<'bookings' | 'results' | 'reviews' | 'services' | 'analytics' | 'visibility' | 'contact'>('bookings')
   const [message, setMessage] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
@@ -65,6 +65,13 @@ export default function AdminPage() {
     detail: '',
     image: '',
   })
+
+  // Signature services state
+  const [services, setServices] = useState<ServiceItem[]>([])
+  const [showServiceForm, setShowServiceForm] = useState(false)
+  const emptyService = { name: '', slug: '', category: 'facial' as const, shortDescription: '', image: '/images/before-after-result.png', highlights: '', suitableFor: '', techniques: '', recovery: '', risksAndConsiderations: '', preConsultation: '', price: '', currency: 'USD', priceDisplayType: 'contact' as const, displayOrder: '1', isActive: true }
+  const [serviceForm, setServiceForm] = useState(emptyService)
+  const [editingServiceId, setEditingServiceId] = useState<string | undefined>()
 
   // Reviews state
   const [reviews, setReviews] = useState<ReviewItem[]>([])
@@ -128,8 +135,29 @@ export default function AdminPage() {
       loadBookings()
       loadResults()
       loadReviews()
+      loadServices()
     }
   }, [authed])
+
+  async function loadServices() {
+    const res = await fetch('/api/services?all=true', { headers: { authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` } })
+    const data = await res.json()
+    if (data.success) setServices(data.services)
+  }
+
+  async function saveService(event: React.FormEvent) {
+    event.preventDefault()
+    const payload = { ...serviceForm, price: serviceForm.price === '' ? null : Number(serviceForm.price), displayOrder: Number(serviceForm.displayOrder), highlights: serviceForm.highlights.split('\n'), suitableFor: serviceForm.suitableFor.split('\n'), techniques: serviceForm.techniques.split('\n'), risksAndConsiderations: serviceForm.risksAndConsiderations.split('\n') }
+    const res = await fetch(editingServiceId ? `/api/services/${editingServiceId}` : '/api/services', { method: editingServiceId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` }, body: JSON.stringify(payload) })
+    const data = await res.json()
+    if (data.success) { setShowServiceForm(false); setEditingServiceId(undefined); setServiceForm(emptyService); loadServices(); setMessage('Service saved successfully.') } else alert(data.error || 'Unable to save service.')
+  }
+
+  async function removeService(id: string) {
+    if (!confirm('Are you sure you want to delete this service?')) return
+    const res = await fetch(`/api/services/${id}`, { method: 'DELETE', headers: { authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` } })
+    if ((await res.json()).success) loadServices()
+  }
 
   async function loadBookings() {
     setLoadingBookings(true)
@@ -668,6 +696,16 @@ export default function AdminPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab('services')}
+            className={`flex items-center gap-2 rounded-t-2xl px-5 py-3 text-xs font-bold uppercase tracking-wider transition ${
+              activeTab === 'services' ? 'border-b-2 border-[#0e5d94] bg-white text-[#0e5d94] shadow-sm' : 'text-[#66829a] hover:bg-white/50'
+            }`}
+          >
+            <Sparkles className="size-4" />
+            <span>Dịch vụ ({services.length})</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('analytics')}
             className={`flex items-center gap-2 rounded-t-2xl px-5 py-3 text-xs font-bold uppercase tracking-wider transition ${
               activeTab === 'analytics'
@@ -703,6 +741,15 @@ export default function AdminPage() {
             <span>Liên hệ</span>
           </button>
         </nav>
+
+        {/* Tab: Signature Services */}
+        {activeTab === 'services' && (
+          <section className="mt-6 rounded-3xl border border-[#dce8f2] bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#edf3f8] pb-6"><div><h2 className="font-serif text-2xl font-bold text-[#0e3a63]">Signature Services</h2><p className="mt-1 text-xs text-[#66829a]">Manage detailed service information displayed on the public website.</p></div><button type="button" onClick={() => { setEditingServiceId(undefined); setServiceForm(emptyService); setShowServiceForm(true) }} className="flex items-center gap-2 rounded-xl bg-[#0e5d94] px-4 py-2 text-xs font-bold text-white"><Plus className="size-4" /> Add service</button></div>
+            {showServiceForm && <form onSubmit={saveService} className="mt-6 grid gap-4 rounded-2xl bg-[#f6faff] p-6 sm:grid-cols-2"><input required placeholder="Service name" value={serviceForm.name} onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })} className="rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><input required placeholder="Slug" value={serviceForm.slug} onChange={(e) => setServiceForm({ ...serviceForm, slug: e.target.value })} className="rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><select value={serviceForm.category} onChange={(e) => setServiceForm({ ...serviceForm, category: e.target.value as 'facial' | 'body' })} className="rounded-xl border border-[#c8dcea] px-4 py-3 text-sm"><option value="facial">Facial</option><option value="body">Body</option></select><input placeholder="Image path or URL" value={serviceForm.image} onChange={(e) => setServiceForm({ ...serviceForm, image: e.target.value })} className="rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><textarea required placeholder="Short description" value={serviceForm.shortDescription} onChange={(e) => setServiceForm({ ...serviceForm, shortDescription: e.target.value })} className="rounded-xl border border-[#c8dcea] px-4 py-3 text-sm sm:col-span-2" /><textarea placeholder="Highlights (one per line)" value={serviceForm.highlights} onChange={(e) => setServiceForm({ ...serviceForm, highlights: e.target.value })} className="min-h-24 rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><textarea placeholder="Suitable for (one per line)" value={serviceForm.suitableFor} onChange={(e) => setServiceForm({ ...serviceForm, suitableFor: e.target.value })} className="min-h-24 rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><textarea placeholder="Techniques (one per line)" value={serviceForm.techniques} onChange={(e) => setServiceForm({ ...serviceForm, techniques: e.target.value })} className="min-h-24 rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><textarea placeholder="Risks and considerations (one per line)" value={serviceForm.risksAndConsiderations} onChange={(e) => setServiceForm({ ...serviceForm, risksAndConsiderations: e.target.value })} className="min-h-24 rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><textarea placeholder="Recovery guidance" value={serviceForm.recovery} onChange={(e) => setServiceForm({ ...serviceForm, recovery: e.target.value })} className="rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><textarea placeholder="Pre-consultation preparation" value={serviceForm.preConsultation} onChange={(e) => setServiceForm({ ...serviceForm, preConsultation: e.target.value })} className="rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><div className="flex gap-3 sm:col-span-2"><input type="number" min="0" placeholder="Reference price" value={serviceForm.price} onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })} className="w-40 rounded-xl border border-[#c8dcea] px-4 py-3 text-sm" /><select value={serviceForm.priceDisplayType} onChange={(e) => setServiceForm({ ...serviceForm, priceDisplayType: e.target.value as 'from' | 'fixed' | 'contact' })} className="rounded-xl border border-[#c8dcea] px-4 py-3 text-sm"><option value="contact">Contact for Price</option><option value="from">From</option><option value="fixed">Fixed</option></select><button type="submit" className="rounded-xl bg-[#0e5d94] px-5 py-3 text-xs font-bold text-white">Save service</button><button type="button" onClick={() => setShowServiceForm(false)} className="rounded-xl border border-[#c8dcea] px-5 py-3 text-xs font-bold text-[#55738f]">Cancel</button></div></form>}
+            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{services.map((service) => <article key={service.id} className="rounded-2xl border border-[#dce8f2] p-5"><p className="text-xs font-bold uppercase tracking-wider text-[#1873aa]">{service.category}</p><h3 className="mt-2 font-serif text-xl font-bold text-[#0e3a63]">{service.name}</h3><p className="mt-2 text-sm text-[#66829a]">{service.shortDescription}</p><div className="mt-4 flex gap-2"><button type="button" onClick={() => { setEditingServiceId(service.id); setServiceForm({ ...service, highlights: service.highlights.join('\n'), suitableFor: service.suitableFor.join('\n'), techniques: service.techniques.join('\n'), risksAndConsiderations: service.risksAndConsiderations.join('\n'), price: service.price?.toString() || '', displayOrder: service.displayOrder.toString() }); setShowServiceForm(true) }} className="rounded-lg border border-[#c8dcea] px-3 py-2 text-xs font-bold text-[#0e5d94]">Edit</button><button type="button" onClick={() => service.id && removeService(service.id)} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600">Delete</button></div></article>)}</div>
+          </section>
+        )}
 
         {/* Tab 1: Bookings Management */}
         {activeTab === 'bookings' && (
