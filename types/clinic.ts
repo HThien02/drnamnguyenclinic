@@ -1,4 +1,4 @@
-export type Language = 'vi' | 'en' | 'th' | 'lo' | 'km' | 'id' | 'ms' | 'ko' | 'ja' | 'zh'
+export type Language = 'en'
 
 export type BookingStatus = 'pending' | 'contacted' | 'confirmed' | 'cancelled'
 

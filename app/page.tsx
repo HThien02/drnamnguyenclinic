@@ -34,7 +34,7 @@ function formatName(value: string) {
 
 export default function Home() {
   const router = useRouter()
-  const [language, setLanguage] = useState<Language>('vi')
+  const [language, setLanguage] = useState<Language>('en')
   const [menuOpen, setMenuOpen] = useState(false)
   const [resultIndex, setResultIndex] = useState(0)
   const [reviewIndex, setReviewIndex] = useState(0)
@@ -235,25 +235,6 @@ export default function Home() {
           </nav>
 
           <div className="flex items-center gap-3">
-            {/* Language Selector */}
-            <div className="relative">
-              <select
-                aria-label="Select language"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as Language)}
-                className="cursor-pointer appearance-none rounded-full border border-[#c8dcea] bg-white/70 py-1.5 pl-3 pr-7 text-xs font-bold text-[#1873aa] shadow-sm transition hover:border-[#1873aa] focus:outline-none focus:ring-2 focus:ring-[#8bc5e6]"
-              >
-                {languages.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#1873aa]">
-                ▼
-              </div>
-            </div>
-
             <a
               href="#booking"
               className="hidden rounded-full bg-[#0e5d94] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-md transition-all hover:bg-[#0c4e7d] hover:shadow-lg sm:block"
@@ -306,7 +287,7 @@ export default function Home() {
             <h1 className="font-serif text-5xl leading-[1.05] tracking-[-0.03em] text-[#0e3a63] sm:text-7xl lg:text-[6.2rem]">
               {t.hero}
             </h1>
-            <p className="mt-8 max-w-[510px] text-base leading-8 text-[#58738d]">{t.body}</p>
+            <p className="mt-4 max-w-[510px] text-lg leading-8 text-[#58738d] font-medium">{t.body}</p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <a
                 href="#booking"
@@ -355,27 +336,27 @@ export default function Home() {
         <section className="border-y border-[#dce8f2] bg-white">
           <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-6 px-6 py-8 text-center md:grid-cols-4">
             <div>
-              <strong className="font-serif text-3xl font-bold text-[#0e5d94] md:text-4xl">12+</strong>
+              <strong className="font-serif text-3xl font-bold text-[#0e5d94] md:text-4xl">10+</strong>
               <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-[#6b879e]">
-                {language === 'vi' ? 'Năm kinh nghiệm' : 'Years Experience'}
+                Years Experience
               </p>
             </div>
             <div>
               <strong className="font-serif text-3xl font-bold text-[#0e5d94] md:text-4xl">15k+</strong>
               <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-[#6b879e]">
-                {language === 'vi' ? 'Khách hàng tin chọn' : 'Happy Patients'}
+                Happy Patients
               </p>
             </div>
             <div>
               <strong className="font-serif text-3xl font-bold text-[#0e5d94] md:text-4xl">98%</strong>
               <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-[#6b879e]">
-                {language === 'vi' ? 'Tỉ lệ hài lòng' : 'Satisfaction Rate'}
+                Satisfaction Rate
               </p>
             </div>
             <div>
               <strong className="font-serif text-3xl font-bold text-[#0e5d94] md:text-4xl">4.9</strong>
               <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-[#6b879e]">
-                {language === 'vi' ? 'Đánh giá chuẩn y tế' : 'Clinical Rating'}
+                Clinical Rating
               </p>
             </div>
           </div>
@@ -392,7 +373,7 @@ export default function Home() {
             {t.servicesTitle}
           </h2>
           <div className="grid gap-6 md:grid-cols-3">
-            {servicesData.map(({ no, vi, en, detail, iconName }) => {
+            {servicesData.map(({ no, en, detail, iconName }) => {
               const Icon = iconName === 'Sparkles' ? Sparkles : iconName === 'ShieldCheck' ? ShieldCheck : Check
               return (
                 <article
@@ -406,12 +387,115 @@ export default function Home() {
                     </div>
                   </div>
                   <h3 className="font-serif text-2xl font-bold text-[#0e3a63]">
-                    {language === 'vi' ? vi : en}
+                    {en}
                   </h3>
                   <p className="mt-4 text-sm leading-7 text-[#66829a]">{detail}</p>
                 </article>
               )
             })}
+          </div>
+        </section>
+      )}
+
+      {/* Doctor Introduction Section */}
+      {visibility.services !== false && (
+        <section className="mx-auto max-w-[1320px] px-6 py-24 lg:px-10">
+          <div className="text-center mb-16">
+            <h2 className="font-serif text-4xl leading-[1.1] text-[#0e3a63] sm:text-5xl lg:text-6xl">
+              {t.doctorSectionTitle}
+            </h2>
+          </div>
+
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+            <div className="relative mx-auto w-full max-w-[580px]">
+              <div className="absolute -inset-4 rounded-[210px_210px_32px_32px] border-2 border-[#a9cfe6]/70" />
+              <div className="relative aspect-[0.86] overflow-hidden rounded-[190px_190px_24px_24px] bg-[#d8ebf7] shadow-2xl">
+                <img
+                  src="/images/doctor-nam.png"
+                  alt={t.doctor}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-serif text-3xl font-bold text-[#0e3a63] mb-4">{t.doctor}</h3>
+              <p className="text-sm font-semibold uppercase tracking-wider text-[#1873aa] mb-8">{t.role}</p>
+
+              <blockquote className="font-serif text-lg leading-8 text-[#58738d] mb-6 italic border-l-4 border-[#0e5d94] pl-6">
+                "{t.doctorIntro}"
+              </blockquote>
+
+              <blockquote className="font-serif text-lg leading-8 text-[#58738d] italic border-l-4 border-[#0e5d94] pl-6">
+                "{t.doctorIntro2}"
+              </blockquote>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Philosophy & Approach Section */}
+      {visibility.services !== false && (
+        <section className="bg-[#eaf5fb] px-6 py-24 lg:px-10">
+          <div className="mx-auto max-w-[1320px]">
+            <div className="text-center mb-16">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#1873aa]">
+                {t.services}
+              </p>
+              <h2 className="font-serif text-4xl leading-[1.1] text-[#0e3a63] sm:text-5xl lg:text-6xl">
+                {t.philosophyTitle}
+              </h2>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-2xl border border-[#dce8f2] bg-white p-8 shadow-sm transition hover:shadow-md">
+                <div className="flex size-12 items-center justify-center rounded-full bg-[#eaf5fb] text-[#0e5d94] mb-4">
+                  <Sparkles className="size-6" />
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#0e3a63] mb-2">{t.philosophy1}</h3>
+                <p className="text-sm leading-6 text-[#66829a]">{t.philosophy1Detail}</p>
+              </div>
+
+              <div className="rounded-2xl border border-[#dce8f2] bg-white p-8 shadow-sm transition hover:shadow-md">
+                <div className="flex size-12 items-center justify-center rounded-full bg-[#eaf5fb] text-[#0e5d94] mb-4">
+                  <ShieldCheck className="size-6" />
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#0e3a63] mb-2">{t.philosophy2}</h3>
+                <p className="text-sm leading-6 text-[#66829a]">{t.philosophy2Detail}</p>
+              </div>
+
+              <div className="rounded-2xl border border-[#dce8f2] bg-white p-8 shadow-sm transition hover:shadow-md">
+                <div className="flex size-12 items-center justify-center rounded-full bg-[#eaf5fb] text-[#0e5d94] mb-4">
+                  <Check className="size-6" />
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#0e3a63] mb-2">{t.philosophy3}</h3>
+                <p className="text-sm leading-6 text-[#66829a]">{t.philosophy3Detail}</p>
+              </div>
+
+              <div className="rounded-2xl border border-[#dce8f2] bg-white p-8 shadow-sm transition hover:shadow-md">
+                <div className="flex size-12 items-center justify-center rounded-full bg-[#eaf5fb] text-[#0e5d94] mb-4">
+                  <Lock className="size-6" />
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#0e3a63] mb-2">{t.philosophy4}</h3>
+                <p className="text-sm leading-6 text-[#66829a]">{t.philosophy4Detail}</p>
+              </div>
+
+              <div className="rounded-2xl border border-[#dce8f2] bg-white p-8 shadow-sm transition hover:shadow-md">
+                <div className="flex size-12 items-center justify-center rounded-full bg-[#eaf5fb] text-[#0e5d94] mb-4">
+                  <MessageCircle className="size-6" />
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#0e3a63] mb-2">{t.philosophy5}</h3>
+                <p className="text-sm leading-6 text-[#66829a]">{t.philosophy5Detail}</p>
+              </div>
+
+              <div className="rounded-2xl border border-[#dce8f2] bg-white p-8 shadow-sm transition hover:shadow-md">
+                <div className="flex size-12 items-center justify-center rounded-full bg-[#eaf5fb] text-[#0e5d94] mb-4">
+                  <Clock className="size-6" />
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#0e3a63] mb-2">{t.philosophy6}</h3>
+                <p className="text-sm leading-6 text-[#66829a]">{t.philosophy6Detail}</p>
+              </div>
+            </div>
           </div>
         </section>
       )}
