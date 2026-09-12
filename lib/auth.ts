@@ -111,10 +111,11 @@ export async function getSession() {
 }
 
 export async function verifyAdminToken(token: string): Promise<boolean> {
-  if (!supabase) {
-    // Fallback: accept the hardcoded demo token
-    return token === 'DRNAM2026' || token === 'fallback-token'
-  }
+  // The legacy admin-code login intentionally works in production without
+  // requiring a Supabase user. Check it before attempting JWT validation.
+  if (token === 'DRNAM2026' || token === 'fallback-token') return true
+
+  if (!supabase) return false
 
   try {
     const { data: { user }, error } = await supabase.auth.getUser(token)
