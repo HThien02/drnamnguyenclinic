@@ -2,6 +2,49 @@ import { supabase } from './supabase'
 import type { Booking, BookingStatus, ResultItem, ReviewItem, ServiceItem, ServiceCategory } from '@/types/clinic'
 
 // Initial seed data for fallback when Supabase is not configured
+export type SectionVisibility = Record<string, boolean>
+
+const defaultSectionVisibility: SectionVisibility = {
+  hero: true,
+  stats: true,
+  services: true,
+  results: true,
+  reviews: true,
+  booking: true,
+  footer: true,
+  social: true,
+}
+
+let fallbackSectionVisibility: SectionVisibility = { ...defaultSectionVisibility }
+
+export async function getSectionVisibility(): Promise<SectionVisibility> {
+  if (!supabase) return { ...fallbackSectionVisibility }
+  try {
+    const { data, error } = await supabase.from('section_visibility').select('section_key, is_visible')
+    if (error) throw error
+    return (data || []).reduce<SectionVisibility>((result, row) => {
+      result[row.section_key] = row.is_visible !== false
+      return result
+    }, { ...defaultSectionVisibility })
+  } catch {
+    return { ...fallbackSectionVisibility }
+  }
+}
+
+export async function updateSectionVisibility(visibility: SectionVisibility): Promise<SectionVisibility> {
+  const normalized = Object.keys(defaultSectionVisibility).reduce<SectionVisibility>((result, key) => {
+    result[key] = visibility[key] !== false
+    return result
+  }, {})
+  fallbackSectionVisibility = normalized
+  if (!supabase) return { ...normalized }
+
+  const rows = Object.entries(normalized).map(([section_key, is_visible]) => ({ section_key, is_visible, updated_at: new Date().toISOString() }))
+  const { error } = await supabase.from('section_visibility').upsert(rows, { onConflict: 'section_key' })
+  if (error) throw error
+  return { ...normalized }
+}
+
 const initialSeedBookings: Booking[] = [
   {
     id: 'bk-1725960001',

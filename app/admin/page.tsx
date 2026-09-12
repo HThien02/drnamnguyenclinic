@@ -140,6 +140,7 @@ export default function AdminPage() {
       loadResults()
       loadReviews()
       loadServices()
+      loadVisibility()
     }
   }, [authed])
 
@@ -147,6 +148,18 @@ export default function AdminPage() {
     const res = await fetch('/api/services?all=true', { headers: { authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` } })
     const data = await res.json()
     if (data.success) setServices(data.services)
+  }
+
+  async function loadVisibility() {
+    try {
+      const res = await fetch('/api/visibility')
+      const data = await res.json()
+      if (data.success && data.visibility) {
+        setSections((current) => current.map((section) => ({ ...section, visible: data.visibility[section.id] !== false })))
+      }
+    } catch {
+      // Keep the local fallback when the API is unavailable.
+    }
   }
 
   async function saveService(event: React.FormEvent) {
@@ -424,13 +437,32 @@ export default function AdminPage() {
   }
 
   // Visibility toggle
-  function toggleSection(id: string) {
+  async function toggleSection(id: string) {
     const next = sections.map((item) =>
       item.id === id ? { ...item, visible: !item.visible } : item
     )
     setSections(next)
     localStorage.setItem('clinic-content', JSON.stringify(next))
-    setMessage('Đã cập nhật cấu hình hiển thị trang chủ.')
+
+    try {
+      const visibility = next.reduce<Record<string, boolean>>((result, item) => {
+        result[item.id] = item.visible
+        return result
+      }, {})
+      const res = await fetch('/api/visibility', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}`,
+        },
+        body: JSON.stringify({ visibility }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Không thể lưu cấu hình hiển thị.')
+      setMessage('Đã cập nhật cấu hình hiển thị trang chủ.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Không thể lưu cấu hình hiển thị.')
+    }
   }
 
   // Save contact settings

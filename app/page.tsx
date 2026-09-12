@@ -115,6 +115,13 @@ export default function Home() {
         if (data.success && Array.isArray(data.services)) setServices(data.services)
       })
       .catch(() => { })
+
+    fetch('/api/visibility')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.visibility) setVisibility((prev) => ({ ...prev, ...data.visibility }))
+      })
+      .catch(() => { })
   }, [])
 
   // Load saved visibility settings
@@ -242,12 +249,14 @@ export default function Home() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <a
-              href="#booking"
-              className="hidden rounded-full bg-[#0e5d94] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-md transition-all hover:bg-[#0c4e7d] hover:shadow-lg sm:block"
-            >
-              {t.cta}
-            </a>
+            {visibility.booking !== false && (
+              <a
+                href="#booking"
+                className="hidden rounded-full bg-[#0e5d94] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-md transition-all hover:bg-[#0c4e7d] hover:shadow-lg sm:block"
+              >
+                {t.cta}
+              </a>
+            )}
 
             <button
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -272,6 +281,7 @@ export default function Home() {
                 {item}
               </a>
             ))}
+          {visibility.booking !== false && (
             <a
               onClick={() => setMenuOpen(false)}
               href="#booking"
@@ -279,6 +289,7 @@ export default function Home() {
             >
               {t.cta}
             </a>
+          )}
           </nav>
         )}
       </header>
@@ -316,10 +327,12 @@ export default function Home() {
                 <ArrowRight className="size-4" aria-hidden="true" />
               </a>
             </div>
-            <a href="#booking" className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[#55738f] transition hover:text-[#0e5d94]">
-              {t.cta}
-              <ArrowRight className="size-3.5" aria-hidden="true" />
-            </a>
+            {visibility.booking !== false && (
+              <a href="#booking" className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[#55738f] transition hover:text-[#0e5d94]">
+                {t.cta}
+                <ArrowRight className="size-3.5" aria-hidden="true" />
+              </a>
+            )}
           </div>
 
           <div className="relative mx-auto w-full max-w-[580px]">
