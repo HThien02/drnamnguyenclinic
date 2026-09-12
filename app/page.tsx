@@ -292,24 +292,33 @@ export default function Home() {
               {t.eyebrow}
             </p>
             <h1 className="font-serif text-5xl leading-[1.05] tracking-[-0.03em] text-[#0e3a63] sm:text-7xl lg:text-[6.2rem]">
-              {t.hero}
+              <span>Precision in Technique</span>{' '}
+              <span className="text-[#1873aa]">Refinement in Beauty.</span>
             </h1>
-            <p className="mt-4 max-w-[510px] text-lg leading-8 text-[#58738d] font-medium">{t.body}</p>
-            <div className="mt-9 flex flex-wrap items-center gap-4">
+            <p className="mt-4 max-w-[510px] text-lg font-medium leading-8 text-[#58738d]">{t.body}</p>
+            <div className="mt-8 grid max-w-[560px] gap-3 sm:grid-cols-2">
               <a
-                href="#booking"
-                className="inline-flex items-center gap-3 rounded-full bg-[#0e5d94] px-8 py-4 text-xs font-semibold uppercase tracking-[0.15em] text-white shadow-lg transition-all hover:bg-[#0c4e7d] hover:shadow-xl"
+                href={`https://wa.me/${contactSettings.whatsappPhone}?text=${encodeURIComponent(contactSettings.whatsappMessage)}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="WhatsApp Consultation"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl border border-[#a9cfe6] bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-[#0e5d94] shadow-sm transition hover:-translate-y-0.5 hover:border-[#1873aa] hover:shadow-md"
               >
-                <span>{t.cta}</span>
-                <ArrowRight className="size-4" />
+                <MessageCircle className="size-4" aria-hidden="true" />
+                WhatsApp Consultation
               </a>
               <a
                 href="#services"
-                className="inline-flex items-center gap-2 rounded-full border border-[#c8dcea] bg-white/80 px-6 py-4 text-xs font-semibold text-[#0e3a63] transition hover:bg-white"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#0e5d94] px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#0c4e7d] hover:shadow-xl"
               >
-                {t.services}
+                View Pricing
+                <ArrowRight className="size-4" aria-hidden="true" />
               </a>
             </div>
+            <a href="#booking" className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[#55738f] transition hover:text-[#0e5d94]">
+              {t.cta}
+              <ArrowRight className="size-3.5" aria-hidden="true" />
+            </a>
           </div>
 
           <div className="relative mx-auto w-full max-w-[580px]">
@@ -379,7 +388,7 @@ export default function Home() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {services.map((service, index) => (
               <article key={service.id || service.slug} className="group overflow-hidden rounded-[28px] border border-[#d8e8f2] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
-                <div className="relative aspect-[1.25] overflow-hidden bg-[#eaf5fb]"><img src={service.image} alt={service.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /><span className="absolute left-5 top-5 rounded-full bg-white/90 px-3 py-1 font-mono text-xs font-bold text-[#1873aa]">{String(index + 1).padStart(2, '0')}</span></div>
+                <div className="relative aspect-[1.25] overflow-hidden bg-[#eaf5fb]"><img src={service.image} alt={`${service.name} — Dr. Nam Nguyen Plastic & Aesthetic Surgery`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /><span className="absolute left-5 top-5 rounded-full bg-white/90 px-3 py-1 font-mono text-xs font-bold text-[#1873aa]">{String(index + 1).padStart(2, '0')}</span></div>
                 <div className="p-7"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1873aa]">{service.category}</p><h3 className="mt-2 font-serif text-2xl font-bold text-[#0e3a63]">{service.name}</h3><p className="mt-3 text-sm leading-7 text-[#66829a]">{service.shortDescription}</p><ul className="mt-5 flex flex-col gap-2 text-sm text-[#55738f]">{service.highlights.map((highlight) => <li key={highlight} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-[#1873aa]" />{highlight}</li>)}</ul><div className="mt-7 flex items-center justify-between gap-3 border-t border-[#e6eff5] pt-5"><span className="text-sm font-semibold text-[#0e3a63]">{service.priceDisplayType === 'contact' ? 'Contact for Price' : `${service.priceDisplayType === 'from' ? 'From ' : ''}${service.currency === 'USD' ? '$' : service.currency + ' '}${service.price?.toLocaleString()}`}</span><button type="button" onClick={() => setSelectedService(service)} className="rounded-full bg-[#0e5d94] px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#0c4e7d]">Consultation</button></div></div>
               </article>
             ))}
