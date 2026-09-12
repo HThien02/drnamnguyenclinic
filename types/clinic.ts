@@ -45,3 +45,12 @@ export interface TrackingData {
   avgSessionTime: string
   topLanguages: string[]
 }
+
+export interface ContactSettings {
+  phone: string
+  whatsappPhone: string
+  whatsappMessage: string
+  instagramUrl: string
+  address: string
+  workingHours: string
+}

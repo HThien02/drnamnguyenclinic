@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 
 import { copy, languages, servicesData, initialResults, initialReviews } from '@/lib/constants/locales'
-import type { Language } from '@/types/clinic'
+import type { Language, ContactSettings } from '@/types/clinic'
 
 function formatName(value: string) {
   return value
@@ -60,6 +60,16 @@ export default function Home() {
     booking: true,
     footer: true,
     social: true,
+  })
+
+  // Contact settings (synced from Admin)
+  const [contactSettings, setContactSettings] = useState<ContactSettings>({
+    phone: '0932501411',
+    whatsappPhone: '84932501411',
+    whatsappMessage: 'Xin chào, tôi muốn tư vấn về...',
+    instagramUrl: 'https://www.instagram.com/hieuthien.1802/',
+    address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+    workingHours: '09:00 — 19:00 (Thứ 2 - Chủ Nhật)',
   })
 
   const t = copy[language] || copy.vi
@@ -115,6 +125,12 @@ export default function Home() {
         } else if (typeof parsed === 'object' && parsed !== null) {
           setVisibility((prev) => ({ ...prev, ...parsed }))
         }
+      }
+
+      const savedContact = localStorage.getItem('clinic-contact')
+      if (savedContact) {
+        const parsed = JSON.parse(savedContact)
+        setContactSettings(parsed)
       }
     } catch {
       // Ignore storage read errors
@@ -553,25 +569,25 @@ export default function Home() {
 
               <div className="mt-8 flex flex-col gap-4">
                 <a
-                  href="tel:0901234567"
+                  href={`tel:${contactSettings.phone}`}
                   className="inline-flex items-center gap-3 text-base font-semibold text-[#d8eef9] hover:underline"
                 >
                   <div className="flex size-9 items-center justify-center rounded-full bg-white/10">
                     <Phone className="size-4 text-[#8bc5e6]" />
                   </div>
-                  090 123 4567
+                  {contactSettings.phone}
                 </a>
                 <div className="inline-flex items-center gap-3 text-sm text-[#a6c7db]">
                   <div className="flex size-9 items-center justify-center rounded-full bg-white/10">
                     <Clock className="size-4 text-[#8bc5e6]" />
                   </div>
-                  09:00 — 19:00 (Thứ 2 - Chủ Nhật)
+                  {contactSettings.workingHours}
                 </div>
                 <div className="inline-flex items-center gap-3 text-sm text-[#a6c7db]">
                   <div className="flex size-9 items-center justify-center rounded-full bg-white/10">
                     <MapPin className="size-4 text-[#8bc5e6]" />
                   </div>
-                  123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh
+                  {contactSettings.address}
                 </div>
               </div>
             </div>
@@ -626,7 +642,7 @@ export default function Home() {
                       inputMode="numeric"
                       maxLength={10}
                       value={formPhone}
-                      placeholder="090 123 4567"
+                      placeholder={contactSettings.phone}
                       onChange={(e) => setFormPhone(e.target.value.replace(/\D/g, ''))}
                       className="w-full rounded-xl border border-[#c8dcea] bg-[#fdfefe] px-4 py-3 text-sm outline-none transition focus:border-[#1873aa] focus:ring-2 focus:ring-[#8bc5e6]/40"
                     />
@@ -734,7 +750,7 @@ export default function Home() {
       {visibility.social !== false && (
         <div className="fixed bottom-5 left-5 z-40 flex flex-col gap-3">
           <a
-            href="https://wa.me/84901234567"
+            href={`https://wa.me/${contactSettings.whatsappPhone}?text=${encodeURIComponent(contactSettings.whatsappMessage)}`}
             target="_blank"
             rel="noreferrer"
             aria-label="Contact via WhatsApp"
@@ -743,7 +759,7 @@ export default function Home() {
             <MessageCircle className="size-6" />
           </a>
           <a
-            href="https://instagram.com"
+            href={contactSettings.instagramUrl}
             target="_blank"
             rel="noreferrer"
             aria-label="Contact via Instagram"

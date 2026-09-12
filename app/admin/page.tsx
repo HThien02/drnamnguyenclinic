@@ -26,7 +26,7 @@ import {
   User,
   X,
 } from 'lucide-react'
-import type { Booking, BookingStatus, ResultItem, ReviewItem, TrackingData } from '@/types/clinic'
+import type { Booking, BookingStatus, ResultItem, ReviewItem, TrackingData, ContactSettings } from '@/types/clinic'
 
 const defaultSections = [
   { id: 'hero', label: 'Hình ảnh & Giới thiệu Bác sĩ (Hero section)', visible: true },
@@ -45,7 +45,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [useEmailAuth, setUseEmailAuth] = useState(false)
   const [authed, setAuthed] = useState(false)
-  const [activeTab, setActiveTab] = useState<'bookings' | 'results' | 'reviews' | 'analytics' | 'visibility'>('bookings')
+  const [activeTab, setActiveTab] = useState<'bookings' | 'results' | 'reviews' | 'analytics' | 'visibility' | 'contact'>('bookings')
   const [message, setMessage] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
@@ -89,6 +89,16 @@ export default function AdminPage() {
     topLanguages: ['VI (64%)', 'EN (22%)', 'ZH (8%)', 'KO (6%)'],
   })
 
+  // Contact settings state
+  const [contactSettings, setContactSettings] = useState<ContactSettings>({
+    phone: '0932501411',
+    whatsappPhone: '84932501411',
+    whatsappMessage: 'Xin chào, tôi muốn tư vấn về...',
+    instagramUrl: 'https://www.instagram.com/hieuthien.1802/',
+    address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+    workingHours: '09:00 — 19:00 (Thứ 2 - Chủ Nhật)',
+  })
+
   // Check auth session
   useEffect(() => {
     if (sessionStorage.getItem('clinic-admin') === 'yes') {
@@ -104,6 +114,9 @@ export default function AdminPage() {
 
       const savedTracking = localStorage.getItem('clinic-tracking')
       if (savedTracking) setTracking(JSON.parse(savedTracking))
+
+      const savedContact = localStorage.getItem('clinic-contact')
+      if (savedContact) setContactSettings(JSON.parse(savedContact))
     } catch {
       // Ignore
     }
@@ -384,6 +397,12 @@ export default function AdminPage() {
     setSections(next)
     localStorage.setItem('clinic-content', JSON.stringify(next))
     setMessage('Đã cập nhật cấu hình hiển thị trang chủ.')
+  }
+
+  // Save contact settings
+  function saveContactSettings() {
+    localStorage.setItem('clinic-contact', JSON.stringify(contactSettings))
+    setMessage('Đã cập nhật thông tin liên hệ thành công.')
   }
 
   // Export CSV
@@ -670,6 +689,18 @@ export default function AdminPage() {
           >
             <Eye className="size-4" />
             <span>Hiển thị</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('contact')}
+            className={`flex items-center gap-2 rounded-t-2xl px-5 py-3 text-xs font-bold uppercase tracking-wider transition ${
+              activeTab === 'contact'
+                ? 'border-b-2 border-[#0e5d94] bg-white text-[#0e5d94] shadow-sm'
+                : 'text-[#66829a] hover:bg-white/50'
+            }`}
+          >
+            <Phone className="size-4" />
+            <span>Liên hệ</span>
           </button>
         </nav>
 
@@ -1271,6 +1302,107 @@ export default function AdminPage() {
                   </button>
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* Tab 6: Contact Settings */}
+        {activeTab === 'contact' && (
+          <section className="mt-6 rounded-3xl border border-[#dce8f2] bg-white p-6 shadow-sm">
+            <h2 className="font-serif text-2xl font-bold text-[#0e3a63]">
+              Cấu hình Thông tin Liên hệ
+            </h2>
+            <p className="mt-1 text-xs text-[#66829a]">
+              Cập nhật số điện thoại, WhatsApp, Instagram và thông tin phòng khám. Thay đổi có hiệu lực ngay lập tức.
+            </p>
+
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-xs font-bold text-[#0e3a63]">
+                  Số điện thoại hotline
+                </label>
+                <input
+                  type="text"
+                  value={contactSettings.phone}
+                  onChange={(e) => setContactSettings({ ...contactSettings, phone: e.target.value })}
+                  placeholder="0932501411"
+                  className="w-full rounded-xl border border-[#c8dcea] px-4 py-3 text-sm outline-none focus:border-[#0e5d94]"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold text-[#0e3a63]">
+                  Số điện thoại WhatsApp (không có +84, dùng 84)
+                </label>
+                <input
+                  type="text"
+                  value={contactSettings.whatsappPhone}
+                  onChange={(e) => setContactSettings({ ...contactSettings, whatsappPhone: e.target.value })}
+                  placeholder="84932501411"
+                  className="w-full rounded-xl border border-[#c8dcea] px-4 py-3 text-sm outline-none focus:border-[#0e5d94]"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-xs font-bold text-[#0e3a63]">
+                  Nội dung tin nhắn WhatsApp soạn sẵn
+                </label>
+                <input
+                  type="text"
+                  value={contactSettings.whatsappMessage}
+                  onChange={(e) => setContactSettings({ ...contactSettings, whatsappMessage: e.target.value })}
+                  placeholder="Xin chào, tôi muốn tư vấn về..."
+                  className="w-full rounded-xl border border-[#c8dcea] px-4 py-3 text-sm outline-none focus:border-[#0e5d94]"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-xs font-bold text-[#0e3a63]">
+                  URL Instagram
+                </label>
+                <input
+                  type="text"
+                  value={contactSettings.instagramUrl}
+                  onChange={(e) => setContactSettings({ ...contactSettings, instagramUrl: e.target.value })}
+                  placeholder="https://www.instagram.com/hieuthien.1802/"
+                  className="w-full rounded-xl border border-[#c8dcea] px-4 py-3 text-sm outline-none focus:border-[#0e5d94]"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-xs font-bold text-[#0e3a63]">
+                  Địa chỉ phòng khám
+                </label>
+                <input
+                  type="text"
+                  value={contactSettings.address}
+                  onChange={(e) => setContactSettings({ ...contactSettings, address: e.target.value })}
+                  placeholder="123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh"
+                  className="w-full rounded-xl border border-[#c8dcea] px-4 py-3 text-sm outline-none focus:border-[#0e5d94]"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-xs font-bold text-[#0e3a63]">
+                  Giờ làm việc
+                </label>
+                <input
+                  type="text"
+                  value={contactSettings.workingHours}
+                  onChange={(e) => setContactSettings({ ...contactSettings, workingHours: e.target.value })}
+                  placeholder="09:00 — 19:00 (Thứ 2 - Chủ Nhật)"
+                  className="w-full rounded-xl border border-[#c8dcea] px-4 py-3 text-sm outline-none focus:border-[#0e5d94]"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={saveContactSettings}
+                className="rounded-xl bg-[#0e5d94] px-6 py-3 text-xs font-bold text-white shadow hover:bg-[#0c4e7d]"
+              >
+                Lưu thay đổi
+              </button>
             </div>
           </section>
         )}
