@@ -41,6 +41,7 @@ export default function Home() {
   const [results, setResults] = useState<ResultItem[]>(initialResults)
   const [reviews, setReviews] = useState<ReviewItem[]>(initialReviews)
   const [services, setServices] = useState<ServiceItem[]>([])
+  const [doctorImages, setDoctorImages] = useState<string[]>([])
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null)
 
   // Booking form state
@@ -122,6 +123,11 @@ export default function Home() {
         if (data.success && data.visibility) setVisibility((prev) => ({ ...prev, ...data.visibility }))
       })
       .catch(() => { })
+
+    try {
+      const savedDoctorImages = localStorage.getItem('clinic-doctor-images')
+      if (savedDoctorImages) setDoctorImages(JSON.parse(savedDoctorImages))
+    } catch { }
   }, [])
 
   // Load saved visibility settings
@@ -339,7 +345,7 @@ export default function Home() {
             <div className="absolute -inset-4 rounded-[210px_210px_32px_32px] border-2 border-[#a9cfe6]/70" />
             <div className="relative aspect-[0.86] overflow-hidden rounded-[190px_190px_24px_24px] bg-[#d8ebf7] shadow-2xl">
               <img
-                src="/images/doctor-nam.png"
+                src={doctorImages[0] || "/images/doctor-nam.png"}
                 alt={t.doctor}
                 className="h-full w-full object-cover"
               />
@@ -434,9 +440,9 @@ export default function Home() {
               <div className="absolute -inset-4 rounded-[210px_210px_32px_32px] border-2 border-[#a9cfe6]/70" />
               <div className="relative aspect-[0.86] overflow-hidden rounded-[190px_190px_24px_24px] bg-[#d8ebf7] shadow-2xl">
                 <img
-                  src="/images/doctor-nam.png"
-                  alt={t.doctor}
-                  className="h-full w-full object-cover"
+  src={doctorImages[0] || "/images/doctor-nam.png"}
+  alt={t.doctor}
+  className="h-full w-full object-cover"
                 />
               </div>
             </div>
