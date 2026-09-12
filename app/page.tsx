@@ -43,6 +43,7 @@ export default function Home() {
   const [services, setServices] = useState<ServiceItem[]>([])
   const [doctorImages, setDoctorImages] = useState<Array<{ id: string; imageUrl: string; displayOrder: number; isPrimary: boolean }>>([])
   const [doctorImagesLoaded, setDoctorImagesLoaded] = useState(false)
+  const [pageDataLoaded, setPageDataLoaded] = useState(false)
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null)
 
   // Booking form state
@@ -93,69 +94,41 @@ export default function Home() {
     )
   }, [resultIndex, results])
 
-  // Load dynamic results and reviews from API
+  // Load all homepage data together before revealing the page.
   useEffect(() => {
-    fetch('/api/results')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.results) && data.results.length > 0) {
-          setResults(data.results)
-        }
-      })
-      .catch(() => { })
+    const loadHomepageData = async () => {
+      try {
+        const [resultsResponse, reviewsResponse, servicesResponse, visibilityResponse, imagesResponse] = await Promise.all([
+          fetch('/api/results', { cache: 'no-store' }),
+          fetch('/api/reviews', { cache: 'no-store' }),
+          fetch('/api/services', { cache: 'no-store' }),
+          fetch('/api/visibility', { cache: 'no-store' }),
+          fetch('/api/doctor-images', { cache: 'no-store' }),
+        ])
+        const [resultsData, reviewsData, servicesData, visibilityData, imagesData] = await Promise.all([
+          resultsResponse.json(), reviewsResponse.json(), servicesResponse.json(), visibilityResponse.json(), imagesResponse.json(),
+        ])
 
-    fetch('/api/reviews')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) setReviews(data.reviews)
-      })
-      .catch(() => { })
+        if (resultsData.success && Array.isArray(resultsData.results) && resultsData.results.length > 0) setResults(resultsData.results)
+        if (reviewsData.success && Array.isArray(reviewsData.reviews) && reviewsData.reviews.length > 0) setReviews(reviewsData.reviews)
+        if (servicesData.success && Array.isArray(servicesData.services)) setServices(servicesData.services)
+        if (visibilityData.success && visibilityData.visibility) setVisibility(visibilityData.visibility)
+        if (imagesData.success && Array.isArray(imagesData.images)) setDoctorImages(imagesData.images)
+      } catch {
+        // Keep safe built-in content when an optional endpoint is unavailable.
+      } finally {
+        setDoctorImagesLoaded(true)
+        setPageDataLoaded(true)
+      }
+    }
 
-    fetch('/api/services')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.services)) setServices(data.services)
-      })
-      .catch(() => { })
+    loadHomepageData()
 
-    fetch('/api/visibility')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.visibility) setVisibility((prev) => ({ ...prev, ...data.visibility }))
-      })
-      .catch(() => { })
-
-    fetch('/api/doctor-images', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => { if (data.success && Array.isArray(data.images)) setDoctorImages(data.images) })
-      .catch(() => { })
-      .finally(() => setDoctorImagesLoaded(true))
-  }, [])
-
-  // Load saved visibility settings
-  useEffect(() => {
     try {
-      const saved = localStorage.getItem('clinic-content')
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed)) {
-          const map: Record<string, boolean> = {}
-          parsed.forEach((item: any) => {
-            if (item && item.id) map[item.id] = item.visible !== false
-          })
-          setVisibility((prev) => ({ ...prev, ...map }))
-        } else if (typeof parsed === 'object' && parsed !== null) {
-          setVisibility((prev) => ({ ...prev, ...parsed }))
-        }
-      }
-
       const savedContact = localStorage.getItem('clinic-contact')
-      if (savedContact) {
-        const parsed = JSON.parse(savedContact)
-        setContactSettings(parsed)
-      }
+      if (savedContact) setContactSettings(JSON.parse(savedContact))
     } catch {
-      // Ignore storage read errors
+      // Ignore storage read errors.
     }
   }, [])
 
@@ -232,8 +205,19 @@ export default function Home() {
     setFormError('')
   }
 
+  if (!pageDataLoaded) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f6faff] text-[#0e3a63]" aria-busy="true" aria-label="Loading clinic information">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#c8dcea] border-t-[#0e5d94]" />
+          <span className="text-xs font-semibold uppercase tracking-[0.18em]">Loading clinic information</span>
+        </div>
+      </main>
+    )
+  }
+
   return (
-    <main id="top" className="min-h-screen overflow-hidden bg-[#f6faff] text-[#172a42]">
+  <main id="top" className="min-h-screen overflow-hidden bg-[#f6faff] text-[#172a42]">
       {/* Header */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-[#dce8f2]/80 bg-[#f6faff]/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1320px] items-center justify-between px-6 py-4 lg:px-10">
@@ -446,7 +430,7 @@ export default function Home() {
               <div className="absolute -inset-4 rounded-[210px_210px_32px_32px] border-2 border-[#a9cfe6]/70" />
               <div className="relative aspect-[0.86] overflow-hidden rounded-[190px_190px_24px_24px] bg-[#d8ebf7] shadow-2xl">
                 <img
-  src={doctorImages[0] || "/images/doctor-nam.png"}
+  src={doctorImages.find((image) => image.isPrimary)?.imageUrl || doctorImages[0]?.imageUrl || "/images/doctor-nam.png"}
   alt={t.doctor}
   className="h-full w-full object-cover"
                 />
