@@ -45,6 +45,34 @@ CREATE TABLE IF NOT EXISTS services (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Homepage section visibility
+CREATE TABLE IF NOT EXISTS section_visibility (
+  section_key TEXT PRIMARY KEY,
+  is_visible BOOLEAN NOT NULL DEFAULT true,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE section_visibility ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can view section visibility" ON section_visibility;
+CREATE POLICY "Public can view section visibility"
+  ON section_visibility FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admin can manage section visibility" ON section_visibility;
+CREATE POLICY "Admin can manage section visibility"
+  ON section_visibility FOR ALL USING (true) WITH CHECK (true);
+
+INSERT INTO section_visibility (section_key, is_visible) VALUES
+  ('hero', true),
+  ('stats', true),
+  ('services', true),
+  ('results', true),
+  ('reviews', true),
+  ('booking', true),
+  ('footer', true),
+  ('social', true)
+ON CONFLICT (section_key) DO NOTHING;
+
 -- Reviews table
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

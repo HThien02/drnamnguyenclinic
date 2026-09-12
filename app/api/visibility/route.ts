@@ -7,7 +7,12 @@ function adminToken(request: Request) {
 }
 
 export async function GET() {
-  return NextResponse.json({ success: true, visibility: await getSectionVisibility() })
+  try {
+    return NextResponse.json({ success: true, visibility: await getSectionVisibility() })
+  } catch (error) {
+    console.error('Error reading section visibility:', error)
+    return NextResponse.json({ success: false, error: 'Không thể đọc cấu hình hiển thị. Hãy chạy migration section_visibility trong Supabase.' }, { status: 500 })
+  }
 }
 
 export async function PUT(request: Request) {

@@ -19,25 +19,27 @@ let fallbackSectionVisibility: SectionVisibility = { ...defaultSectionVisibility
 
 export async function getSectionVisibility(): Promise<SectionVisibility> {
   if (!supabase) return { ...fallbackSectionVisibility }
-  try {
-    const { data, error } = await supabase.from('section_visibility').select('section_key, is_visible')
-    if (error) throw error
-    return (data || []).reduce<SectionVisibility>((result, row) => {
-      result[row.section_key] = row.is_visible !== false
-      return result
-    }, { ...defaultSectionVisibility })
-  } catch {
-    return { ...fallbackSectionVisibility }
-  }
+
+  const { data, error } = await supabase.from('section_visibility').select('section_key, is_visible')
+  if (error) throw error
+  return (data || []).reduce<SectionVisibility>((result, row) => {
+    if (Object.prototype.hasOwnProperty.call(defaultSectionVisibility, row.section_key)) {
+      result[row.section_key] = row.is_visible === true
+    }
+    return result
+  }, { ...defaultSectionVisibility })
 }
 
 export async function updateSectionVisibility(visibility: SectionVisibility): Promise<SectionVisibility> {
   const normalized = Object.keys(defaultSectionVisibility).reduce<SectionVisibility>((result, key) => {
-    result[key] = visibility[key] !== false
+    result[key] = visibility[key] === true
     return result
   }, {})
-  fallbackSectionVisibility = normalized
-  if (!supabase) return { ...normalized }
+
+  if (!supabase) {
+    fallbackSectionVisibility = normalized
+    return { ...normalized }
+  }
 
   const rows = Object.entries(normalized).map(([section_key, is_visible]) => ({ section_key, is_visible, updated_at: new Date().toISOString() }))
   const { error } = await supabase.from('section_visibility').upsert(rows, { onConflict: 'section_key' })
