@@ -45,6 +45,31 @@ CREATE TABLE IF NOT EXISTS services (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Doctor profile images
+CREATE TABLE IF NOT EXISTS doctor_images (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  image_url TEXT NOT NULL,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_primary BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION set_primary_doctor_image(target_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  UPDATE doctor_images SET is_primary = false;
+  UPDATE doctor_images SET is_primary = true WHERE id = target_id;
+END;
+$$;
+
+ALTER TABLE doctor_images ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public can view doctor images" ON doctor_images;
+CREATE POLICY "Public can view doctor images" ON doctor_images FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admin can manage doctor images" ON doctor_images;
+CREATE POLICY "Admin can manage doctor images" ON doctor_images FOR ALL USING (true) WITH CHECK (true);
+
 -- Homepage section visibility
 CREATE TABLE IF NOT EXISTS section_visibility (
   section_key TEXT PRIMARY KEY,

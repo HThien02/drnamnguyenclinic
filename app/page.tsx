@@ -41,7 +41,8 @@ export default function Home() {
   const [results, setResults] = useState<ResultItem[]>(initialResults)
   const [reviews, setReviews] = useState<ReviewItem[]>(initialReviews)
   const [services, setServices] = useState<ServiceItem[]>([])
-  const [doctorImages, setDoctorImages] = useState<string[]>([])
+  const [doctorImages, setDoctorImages] = useState<Array<{ id: string; imageUrl: string; displayOrder: number; isPrimary: boolean }>>([])
+  const [doctorImagesLoaded, setDoctorImagesLoaded] = useState(false)
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null)
 
   // Booking form state
@@ -124,10 +125,11 @@ export default function Home() {
       })
       .catch(() => { })
 
-    try {
-      const savedDoctorImages = localStorage.getItem('clinic-doctor-images')
-      if (savedDoctorImages) setDoctorImages(JSON.parse(savedDoctorImages))
-    } catch { }
+    fetch('/api/doctor-images', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => { if (data.success && Array.isArray(data.images)) setDoctorImages(data.images) })
+      .catch(() => { })
+      .finally(() => setDoctorImagesLoaded(true))
   }, [])
 
   // Load saved visibility settings
@@ -344,11 +346,15 @@ export default function Home() {
           <div className="relative mx-auto w-full max-w-[580px]">
             <div className="absolute -inset-4 rounded-[210px_210px_32px_32px] border-2 border-[#a9cfe6]/70" />
             <div className="relative aspect-[0.86] overflow-hidden rounded-[190px_190px_24px_24px] bg-[#d8ebf7] shadow-2xl">
-              <img
-                src={doctorImages[0] || "/images/doctor-nam.png"}
-                alt={t.doctor}
-                className="h-full w-full object-cover"
-              />
+              {doctorImagesLoaded ? (
+                <img
+                  src={doctorImages.find((image) => image.isPrimary)?.imageUrl || doctorImages[0]?.imageUrl || "/images/doctor-nam.png"}
+                  alt={t.doctor}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full animate-pulse bg-[#d8ebf7]" aria-label="Loading doctor image" />
+              )}
             </div>
             <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/80 bg-white/95 p-5 shadow-xl backdrop-blur">
               <div className="flex items-center justify-between">

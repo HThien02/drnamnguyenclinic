@@ -87,7 +87,7 @@ export default function AdminPage() {
   const [sections, setSections] = useState(defaultSections)
 
   // Doctor image CRUD state
-  const [doctorImages, setDoctorImages] = useState<string[]>([])
+  const [doctorImages, setDoctorImages] = useState<Array<{ id: string; imageUrl: string; displayOrder: number; isPrimary: boolean }>>([])
   const [doctorImageUrl, setDoctorImageUrl] = useState('')
 
   // Analytics state
@@ -126,8 +126,7 @@ export default function AdminPage() {
 
       const savedContact = localStorage.getItem('clinic-contact')
       if (savedContact) setContactSettings(JSON.parse(savedContact))
-      const savedDoctorImages = localStorage.getItem('clinic-doctor-images')
-      if (savedDoctorImages) setDoctorImages(JSON.parse(savedDoctorImages))
+      loadDoctorImages()
     } catch {
       // Ignore
     }
@@ -463,10 +462,23 @@ export default function AdminPage() {
     }
   }
 
-  function saveDoctorImages(nextImages: string[]) {
-    setDoctorImages(nextImages)
-    localStorage.setItem('clinic-doctor-images', JSON.stringify(nextImages))
-    setMessage('Đã cập nhật ảnh bác sĩ.')
+  async function loadDoctorImages() {
+    const response = await fetch('/api/doctor-images', { cache: 'no-store' })
+    const data = await response.json()
+    if (!response.ok || !data.success) throw new Error(data.error || 'Không thể tải ảnh bác sĩ.')
+    setDoctorImages(data.images)
+  }
+
+  async function createDoctorImage(imageUrl: string) {
+    const response = await fetch('/api/doctor-images', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` },
+      body: JSON.stringify({ imageUrl, isPrimary: doctorImages.length === 0 }),
+    })
+    const data = await response.json()
+    if (!response.ok || !data.success) throw new Error(data.error || 'Không thể lưu ảnh bác sĩ.')
+    setDoctorImages(data.images)
+    setMessage('Đã lưu ảnh bác sĩ vào database.')
   }
 
   async function uploadDoctorImage(file: File) {
@@ -475,7 +487,31 @@ export default function AdminPage() {
     const response = await fetch('/api/upload', { method: 'POST', body: formData })
     const data = await response.json()
     if (!response.ok || !data.success) throw new Error(data.error || 'Không thể tải ảnh lên.')
-    saveDoctorImages([...doctorImages, data.url])
+    await createDoctorImage(data.url)
+  }
+
+  async function removeDoctorImage(id: string) {
+    const response = await fetch('/api/doctor-images', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` },
+      body: JSON.stringify({ id }),
+    })
+    const data = await response.json()
+    if (!response.ok || !data.success) throw new Error(data.error || 'Không thể xóa ảnh bác sĩ.')
+    setDoctorImages(data.images)
+    setMessage('Đã xóa ảnh bác sĩ.')
+  }
+
+  async function setPrimaryDoctorImage(id: string) {
+    const response = await fetch('/api/doctor-images', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` },
+      body: JSON.stringify({ id }),
+    })
+    const data = await response.json()
+    if (!response.ok || !data.success) throw new Error(data.error || 'Không thể chọn ảnh chính.')
+    setDoctorImages(data.images)
+    setMessage('Đã chọn ảnh chính.')
   }
 
   // Save contact settings
@@ -1420,10 +1456,10 @@ export default function AdminPage() {
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#0e5d94] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#0c4e7d]"><Upload className="size-4" /> Tải ảnh lên<input type="file" accept="image/png,image/jpeg,image/webp,image/avif" className="hidden" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { await uploadDoctorImage(file) } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể tải ảnh lên.') } event.target.value = '' }} /></label>
               </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                {doctorImages.map((image, index) => <div key={`${image}-${index}`} className="group relative overflow-hidden rounded-xl border border-[#c8dcea] bg-white"><img src={image} alt={`Ảnh bác sĩ ${index + 1}`} className="aspect-[0.86] w-full object-cover" /><button type="button" onClick={() => saveDoctorImages(doctorImages.filter((_, itemIndex) => itemIndex !== index))} className="absolute right-2 top-2 rounded-lg bg-white/90 p-2 text-red-600 shadow hover:bg-white" aria-label={`Xóa ảnh bác sĩ ${index + 1}`}><Trash2 className="size-4" /></button></div>)}
+                {doctorImages.map((image, index) => <div key={image.id} className="group relative overflow-hidden rounded-xl border border-[#c8dcea] bg-white"><img src={image.imageUrl} alt={`Ảnh bác sĩ ${index + 1}`} className="aspect-[0.86] w-full object-cover" /><div className="absolute inset-x-2 top-2 flex justify-between gap-2"><button type="button" onClick={() => setPrimaryDoctorImage(image.id)} className={`rounded-lg px-2 py-1 text-[10px] font-bold shadow ${image.isPrimary ? 'bg-[#0e5d94] text-white' : 'bg-white/90 text-[#0e5d94]'}`}>{image.isPrimary ? 'Ảnh chính' : 'Đặt làm chính'}</button><button type="button" onClick={() => removeDoctorImage(image.id)} className="rounded-lg bg-white/90 p-2 text-red-600 shadow hover:bg-white" aria-label={`Xóa ảnh bác sĩ ${index + 1}`}><Trash2 className="size-4" /></button></div></div>)}
                 {doctorImages.length === 0 && <p className="text-xs text-[#66829a]">Chưa có ảnh tùy chỉnh. Trang chủ đang dùng ảnh mặc định.</p>}
               </div>
-              <div className="mt-4 flex gap-2"><input value={doctorImageUrl} onChange={(event) => setDoctorImageUrl(event.target.value)} placeholder="Hoặc dán URL ảnh" className="min-w-0 flex-1 rounded-xl border border-[#c8dcea] px-4 py-2.5 text-xs" /><button type="button" onClick={() => { if (doctorImageUrl.trim()) { saveDoctorImages([...doctorImages, doctorImageUrl.trim()]); setDoctorImageUrl('') } }} className="rounded-xl border border-[#0e5d94] px-4 py-2.5 text-xs font-bold text-[#0e5d94]">Thêm URL</button></div>
+              <div className="mt-4 flex gap-2"><input value={doctorImageUrl} onChange={(event) => setDoctorImageUrl(event.target.value)} placeholder="Hoặc dán URL ảnh" className="min-w-0 flex-1 rounded-xl border border-[#c8dcea] px-4 py-2.5 text-xs" /><button type="button" onClick={async () => { if (!doctorImageUrl.trim()) return; try { await createDoctorImage(doctorImageUrl.trim()); setDoctorImageUrl('') } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể lưu ảnh bác sĩ.') } }} className="rounded-xl border border-[#0e5d94] px-4 py-2.5 text-xs font-bold text-[#0e5d94]">Thêm URL</button></div>
             </div>
 
             <div className="mt-6 grid gap-6 md:grid-cols-2">

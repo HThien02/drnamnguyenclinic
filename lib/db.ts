@@ -2,6 +2,36 @@ import { supabase } from './supabase'
 import type { Booking, BookingStatus, ResultItem, ReviewItem, ServiceItem, ServiceCategory } from '@/types/clinic'
 
 // Initial seed data for fallback when Supabase is not configured
+export type DoctorImage = { id: string; imageUrl: string; displayOrder: number; isPrimary: boolean }
+
+export async function getDoctorImages(): Promise<DoctorImage[]> {
+  if (!supabase) return []
+  const { data, error } = await supabase.from('doctor_images').select('id, image_url, display_order, is_primary').order('display_order', { ascending: true })
+  if (error) throw error
+  return (data || []).map((row) => ({ id: row.id, imageUrl: row.image_url, displayOrder: row.display_order, isPrimary: row.is_primary }))
+}
+
+export async function createDoctorImage(imageUrl: string, isPrimary = false): Promise<DoctorImage> {
+  if (!supabase) throw new Error('Supabase chưa được cấu hình.')
+  if (isPrimary) await supabase.from('doctor_images').update({ is_primary: false }).eq('is_primary', true)
+  const { data, error } = await supabase.from('doctor_images').insert({ image_url: imageUrl, is_primary: isPrimary }).select('id, image_url, display_order, is_primary').single()
+  if (error) throw error
+  return { id: data.id, imageUrl: data.image_url, displayOrder: data.display_order, isPrimary: data.is_primary }
+}
+
+export async function deleteDoctorImage(id: string) {
+  if (!supabase) throw new Error('Supabase chưa được cấu hình.')
+  const { error } = await supabase.from('doctor_images').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function setPrimaryDoctorImage(id: string) {
+  if (!supabase) throw new Error('Supabase chưa được cấu hình.')
+  const { error } = await supabase.rpc('set_primary_doctor_image', { target_id: id })
+  if (error) throw error
+  return getDoctorImages()
+}
+
 export type SectionVisibility = Record<string, boolean>
 
 const defaultSectionVisibility: SectionVisibility = {
