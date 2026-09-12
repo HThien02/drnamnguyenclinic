@@ -21,8 +21,8 @@ import {
   X,
 } from 'lucide-react'
 
-import { copy, languages, servicesData, initialResults, initialReviews } from '@/lib/constants/locales'
-import type { Language, ContactSettings } from '@/types/clinic'
+import { copy, languages, initialResults, initialReviews } from '@/lib/constants/locales'
+import type { Language, ContactSettings, ServiceItem } from '@/types/clinic'
 
 function formatName(value: string) {
   return value
@@ -40,6 +40,7 @@ export default function Home() {
   const [reviewIndex, setReviewIndex] = useState(0)
   const [results, setResults] = useState<ResultItem[]>(initialResults)
   const [reviews, setReviews] = useState<ReviewItem[]>(initialReviews)
+  const [services, setServices] = useState<ServiceItem[]>([])
 
   // Booking form state
   const [formName, setFormName] = useState('')
@@ -103,9 +104,14 @@ export default function Home() {
     fetch('/api/reviews')
       .then((r) => r.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
-          setReviews(data.reviews)
-        }
+        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) setReviews(data.reviews)
+      })
+      .catch(() => {})
+
+    fetch('/api/services')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.services)) setServices(data.services)
       })
       .catch(() => {})
   }, [])
@@ -373,23 +379,23 @@ export default function Home() {
             {t.servicesTitle}
           </h2>
           <div className="grid gap-6 md:grid-cols-3">
-            {servicesData.map(({ no, en, detail, iconName }) => {
-              const Icon = iconName === 'Sparkles' ? Sparkles : iconName === 'ShieldCheck' ? ShieldCheck : Check
+            {(services.length > 0 ? services : []).map((service, index) => {
+              const Icon = service.category === 'facial' ? Sparkles : service.category === 'body' ? ShieldCheck : Check
               return (
                 <article
-                  key={no}
+                  key={service.id || service.slug}
                   className="group rounded-[28px] border border-[#d8e8f2] bg-white p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
                 >
                   <div className="mb-10 flex items-center justify-between">
-                    <span className="font-mono text-sm font-bold text-[#7aaaca]">{no}</span>
+                    <span className="font-mono text-sm font-bold text-[#7aaaca]">{String(index + 1).padStart(2, '0')}</span>
                     <div className="flex size-12 items-center justify-center rounded-full bg-[#eaf5fb] text-[#1873aa] transition-colors group-hover:bg-[#0e5d94] group-hover:text-white">
                       <Icon className="size-6" />
                     </div>
                   </div>
                   <h3 className="font-serif text-2xl font-bold text-[#0e3a63]">
-                    {en}
+                    {service.title}
                   </h3>
-                  <p className="mt-4 text-sm leading-7 text-[#66829a]">{detail}</p>
+                  <p className="mt-4 text-sm leading-7 text-[#66829a]">{service.description}</p>
                 </article>
               )
             })}

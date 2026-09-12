@@ -13,12 +13,20 @@ export interface Booking {
   updatedAt?: string
 }
 
+export type ServiceCategory = 'facial' | 'body'
+
 export interface ServiceItem {
-  no: string
-  vi: string
-  en: string
-  detail: string
-  iconName: 'Sparkles' | 'ShieldCheck' | 'Check'
+  id?: string
+  slug: string
+  title: string
+  shortDescription: string
+  description: string
+  image: string
+  category: ServiceCategory
+  displayOrder: number
+  isActive: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface ResultItem {

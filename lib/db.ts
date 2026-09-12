@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Booking, BookingStatus, ResultItem, ReviewItem } from '@/types/clinic'
+import type { Booking, BookingStatus, ResultItem, ReviewItem, ServiceItem, ServiceCategory } from '@/types/clinic'
 
 // Initial seed data for fallback when Supabase is not configured
 const initialSeedBookings: Booking[] = [
@@ -412,4 +412,73 @@ export async function deleteReview(id: string): Promise<boolean> {
     console.error('Error deleting review from Supabase:', error)
     return false
   }
+}
+
+// ================= SIGNATURE SERVICES =================
+const initialSeedServices: ServiceItem[] = [
+  { id: 'svc-1', slug: 'medical-aesthetics', title: 'Medical Aesthetics', shortDescription: 'Natural refinement with medical precision.', description: 'Personalized aesthetic plans designed around your features, comfort, and long-term skin health.', image: '/images/before-after-surgery.png', category: 'facial', displayOrder: 1, isActive: true },
+  { id: 'svc-2', slug: 'skin-rejuvenation', title: 'Skin Rejuvenation', shortDescription: 'Restore clarity, tone, and healthy radiance.', description: 'Evidence-led treatments that support a stronger skin barrier and visibly brighter complexion.', image: '/images/before-after-result.png', category: 'facial', displayOrder: 2, isActive: true },
+  { id: 'svc-3', slug: 'body-contouring', title: 'Body Contouring', shortDescription: 'Refined contours, balanced proportions.', description: 'Thoughtful body treatments tailored to your goals with a focus on subtle, harmonious results.', image: '/images/before-after-surgery.png', category: 'body', displayOrder: 3, isActive: true },
+]
+
+function mapService(row: any): ServiceItem {
+  return { id: row.id, slug: row.slug, title: row.title, shortDescription: row.short_description, description: row.description, image: row.image_url, category: row.category as ServiceCategory, displayOrder: row.display_order, isActive: row.is_active, createdAt: row.created_at, updatedAt: row.updated_at }
+}
+
+export async function getServices(includeInactive = false): Promise<ServiceItem[]> {
+  if (!supabase) return initialSeedServices.filter((service) => includeInactive || service.isActive).sort((a, b) => a.displayOrder - b.displayOrder)
+  try {
+    let query = supabase.from('services').select('*').order('display_order', { ascending: true })
+    if (!includeInactive) query = query.eq('is_active', true)
+    const { data, error } = await query
+    if (error) throw error
+    return (data || []).map(mapService)
+  } catch (error) {
+    console.error('Error reading services from Supabase:', error)
+    return initialSeedServices.filter((service) => includeInactive || service.isActive).sort((a, b) => a.displayOrder - b.displayOrder)
+  }
+}
+
+export async function createService(input: Omit<ServiceItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceItem> {
+  if (!supabase) {
+    const item = { ...input, id: `svc-${Date.now()}`, createdAt: new Date().toISOString() }
+    initialSeedServices.push(item)
+    return item
+  }
+  const { data, error } = await supabase.from('services').insert({ slug: input.slug, title: input.title, short_description: input.shortDescription, description: input.description, image_url: input.image, category: input.category, display_order: input.displayOrder, is_active: input.isActive }).select().single()
+  if (error) throw error
+  return mapService(data)
+}
+
+export async function updateService(id: string, input: Partial<Omit<ServiceItem, 'id' | 'createdAt' | 'updatedAt'>>): Promise<ServiceItem | null> {
+  if (!supabase) {
+    const index = initialSeedServices.findIndex((item) => item.id === id)
+    if (index === -1) return null
+    initialSeedServices[index] = { ...initialSeedServices[index], ...input, updatedAt: new Date().toISOString() }
+    return initialSeedServices[index]
+  }
+  const payload: Record<string, unknown> = {}
+  if (input.slug !== undefined) payload.slug = input.slug
+  if (input.title !== undefined) payload.title = input.title
+  if (input.shortDescription !== undefined) payload.short_description = input.shortDescription
+  if (input.description !== undefined) payload.description = input.description
+  if (input.image !== undefined) payload.image_url = input.image
+  if (input.category !== undefined) payload.category = input.category
+  if (input.displayOrder !== undefined) payload.display_order = input.displayOrder
+  if (input.isActive !== undefined) payload.is_active = input.isActive
+  payload.updated_at = new Date().toISOString()
+  const { data, error } = await supabase.from('services').update(payload).eq('id', id).select().single()
+  if (error) throw error
+  return mapService(data)
+}
+
+export async function deleteService(id: string): Promise<boolean> {
+  if (!supabase) {
+    const index = initialSeedServices.findIndex((item) => item.id === id)
+    if (index === -1) return false
+    initialSeedServices.splice(index, 1)
+    return true
+  }
+  const { error } = await supabase.from('services').delete().eq('id', id)
+  return !error
 }

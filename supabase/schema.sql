@@ -22,6 +22,21 @@ CREATE TABLE IF NOT EXISTS results (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Signature Services table
+CREATE TABLE IF NOT EXISTS services (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  slug TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  short_description TEXT NOT NULL,
+  description TEXT NOT NULL,
+  image_url TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('facial', 'body')),
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Reviews table
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -44,11 +59,14 @@ CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
 CREATE INDEX IF NOT EXISTS idx_bookings_created_at ON bookings(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_results_created_at ON results(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_services_active_order ON services(is_active, display_order);
+CREATE INDEX IF NOT EXISTS idx_services_category ON services(category);
 
 -- Enable Row Level Security
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_profiles ENABLE ROW LEVEL SECURITY;
 
 -- Policies for bookings (public can read and create, admin can do everything)
@@ -62,6 +80,12 @@ CREATE POLICY "Public can view results" ON results FOR SELECT USING (true);
 CREATE POLICY "Admin can insert results" ON results FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admin can update results" ON results FOR UPDATE USING (true);
 CREATE POLICY "Admin can delete results" ON results FOR DELETE USING (true);
+
+-- Policies for services (public can view active services, admin can do everything)
+CREATE POLICY "Public can view active services" ON services FOR SELECT USING (is_active = true);
+CREATE POLICY "Admin can insert services" ON services FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin can update services" ON services FOR UPDATE USING (true);
+CREATE POLICY "Admin can delete services" ON services FOR DELETE USING (true);
 
 -- Policies for reviews (public can read, admin can do everything)
 CREATE POLICY "Public can view reviews" ON reviews FOR SELECT USING (true);
