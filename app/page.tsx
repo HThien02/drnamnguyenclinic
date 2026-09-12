@@ -100,21 +100,21 @@ export default function Home() {
           setResults(data.results)
         }
       })
-      .catch(() => {})
+      .catch(() => { })
 
     fetch('/api/reviews')
       .then((r) => r.json())
       .then((data) => {
         if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) setReviews(data.reviews)
       })
-      .catch(() => {})
+      .catch(() => { })
 
     fetch('/api/services')
       .then((r) => r.json())
       .then((data) => {
         if (data.success && Array.isArray(data.services)) setServices(data.services)
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   // Load saved visibility settings
@@ -292,7 +292,7 @@ export default function Home() {
               {t.eyebrow}
             </p>
             <h1 className="font-serif text-5xl leading-[1.05] tracking-[-0.03em] text-[#0e3a63] sm:text-7xl lg:text-[6.2rem]">
-              <span>Precision in Technique</span>{' '}
+              <span className="font-bold">Precision in Technique</span>{' '}
               <span className="text-[#1873aa]">Refinement in Beauty.</span>
             </h1>
             <p className="mt-4 max-w-[510px] text-lg font-medium leading-8 text-[#58738d]">{t.body}</p>
@@ -302,14 +302,15 @@ export default function Home() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="WhatsApp Consultation"
-                className="inline-flex items-center justify-center gap-3 rounded-2xl border border-[#a9cfe6] bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-[#0e5d94] shadow-sm transition hover:-translate-y-0.5 hover:border-[#1873aa] hover:shadow-md"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#0e5d94] px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#0c4e7d] hover:shadow-xl"
               >
                 <MessageCircle className="size-4" aria-hidden="true" />
                 WhatsApp Consultation
               </a>
+
               <a
                 href="#services"
-                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#0e5d94] px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#0c4e7d] hover:shadow-xl"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl border border-[#a9cfe6] bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.12em] text-[#0e5d94] shadow-sm transition hover:-translate-y-0.5 hover:border-[#1873aa] hover:shadow-md"
               >
                 View Pricing
                 <ArrowRight className="size-4" aria-hidden="true" />
@@ -539,9 +540,8 @@ export default function Home() {
                 {visibleResults.map((result, offset) => (
                   <article
                     key={`${result.title}-${resultIndex}-${offset}`}
-                    className={`result-card overflow-hidden rounded-[28px] bg-white shadow-sm ${
-                      offset === 1 ? 'active' : 'side'
-                    }`}
+                    className={`result-card overflow-hidden rounded-[28px] bg-white shadow-sm ${offset === 1 ? 'active' : 'side'
+                      }`}
                   >
                     <div className="relative aspect-[1.4] overflow-hidden bg-slate-100">
                       <img
@@ -576,9 +576,8 @@ export default function Home() {
                   key={i}
                   onClick={() => setResultIndex(i)}
                   aria-label={`${t.results} ${i + 1}`}
-                  className={`h-2.5 cursor-pointer rounded-full transition-all ${
-                    i === resultIndex ? 'w-8 bg-[#0e5d94]' : 'w-2.5 bg-[#a9cfe6]'
-                  }`}
+                  className={`h-2.5 cursor-pointer rounded-full transition-all ${i === resultIndex ? 'w-8 bg-[#0e5d94]' : 'w-2.5 bg-[#a9cfe6]'
+                    }`}
                 />
               ))}
             </div>
