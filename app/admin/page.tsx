@@ -109,6 +109,10 @@ export default function AdminPage() {
   // Check auth session
   useEffect(() => {
     if (sessionStorage.getItem('clinic-admin') === 'yes') {
+      // Migrate older fallback sessions that were saved without the API token.
+      if (!sessionStorage.getItem('admin-token')) {
+        sessionStorage.setItem('admin-token', 'fallback-token')
+      }
       setAuthed(true)
     }
 
@@ -247,9 +251,11 @@ export default function AdminPage() {
       // Fallback for development
       if (!useEmailAuth && code === 'DRNAM2026') {
         sessionStorage.setItem('clinic-admin', 'yes')
+        sessionStorage.setItem('admin-token', 'fallback-token')
         setAuthed(true)
       } else if (useEmailAuth && email === 'admin@drnamnguyenclinic.com' && password === 'DRNAM2026') {
         sessionStorage.setItem('clinic-admin', 'yes')
+        sessionStorage.setItem('admin-token', 'fallback-token')
         setAuthed(true)
       } else {
         setMessage('Lỗi kết nối. Vui lòng thử lại.')
