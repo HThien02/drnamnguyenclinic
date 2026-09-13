@@ -602,8 +602,8 @@ export default function Home() {
         >
           <div className="relative mx-auto w-full max-w-[420px]">
             <img
-              src="/images/patient-feedback.png"
-              alt={t.feedback}
+              src={reviews.length > 0 ? reviews[reviewIndex % reviews.length].imageUrl || "/images/patient-feedback.png" : "/images/patient-feedback.png"}
+              alt={reviews.length > 0 ? `Ảnh khách hàng ${reviews[reviewIndex % reviews.length].name}` : t.feedback}
               className="aspect-[0.85] w-full rounded-[170px_170px_32px_32px] object-cover shadow-2xl"
             />
           </div>

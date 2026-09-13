@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { quote, name, role } = body
+    const { quote, name, role, imageUrl } = body
 
     if (!quote || typeof quote !== 'string' || quote.trim().length < 5) {
       return NextResponse.json(
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       quote,
       name,
       role: role || 'Khách hàng thân thiết',
+      imageUrl: typeof imageUrl === 'string' ? imageUrl : undefined,
     })
 
     return NextResponse.json(

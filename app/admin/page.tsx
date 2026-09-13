@@ -1178,6 +1178,11 @@ export default function AdminPage() {
                       className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]"
                     />
                   </div>
+                  <div className="sm:col-span-2">
+                    <label className="mb-1 block text-xs font-bold text-[#0e3a63]">Ảnh khách hàng (URL tùy chọn)</label>
+                    <input type="url" placeholder="https://.../customer.jpg" value={newReview.imageUrl} onChange={(e) => setNewReview({ ...newReview, imageUrl: e.target.value })} className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]" />
+                    <p className="mt-1 text-[11px] text-[#66829a]">Ảnh này sẽ chuyển cùng quote, tên và thông tin khách hàng trên carousel.</p>
+                  </div>
                 </div>
 
                 <div className="mt-5 flex justify-end gap-3">
@@ -1297,7 +1302,7 @@ export default function AdminPage() {
                 <div className="rounded-2xl border border-[#dce8f2] bg-[#f6faff] p-4">
                   <Calendar className="size-5 text-[#1873aa]" />
                   <p className="mt-3 text-2xl font-bold text-[#0e3a63]">{tracking.consultations}</p>
-                  <p className="mt-1 text-xs text-[#66829a]">Tư vấn thành công</p>
+                  <p className="mt-1 text-xs text-[#66829a]">Tư v��n thành công</p>
                 </div>
                 <div className="rounded-2xl border border-[#dce8f2] bg-[#f6faff] p-4">
                   <CheckCircle2 className="size-5 text-emerald-600" />

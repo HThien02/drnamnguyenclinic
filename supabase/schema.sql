@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   quote TEXT NOT NULL,
   name TEXT NOT NULL,
   role TEXT NOT NULL,
+  image_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

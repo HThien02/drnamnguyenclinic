@@ -51,6 +51,7 @@ export interface ReviewItem {
   quote: string
   name: string
   role: string
+  imageUrl?: string
   createdAt?: string
 }
 

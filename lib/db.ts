@@ -157,6 +157,7 @@ const initialSeedReviews: ReviewItem[] = [
     quote: 'Bác sĩ Nam tư vấn rất cặn kẽ, phân tích đúng nguyên nhân da bị tái phát mụn nhiều lần. Sau liệu trình 3 tháng, da mình khỏe và sáng hẳn ra.',
     name: 'Trần Minh Anh',
     role: 'Điều trị mụn & sẹo · 28 tuổi (TP.HCM)',
+    imageUrl: '/images/patient-feedback.png',
     createdAt: '2026-09-01T00:00:00.000Z',
   },
   {
@@ -432,8 +433,9 @@ export async function getReviews(): Promise<ReviewItem[]> {
       id: r.id,
       quote: r.quote,
       name: r.name,
-      role: r.role,
-      createdAt: r.created_at,
+  role: r.role,
+  imageUrl: r.image_url || undefined,
+  createdAt: r.created_at,
     }))
   } catch (error) {
     console.error('Error reading reviews from Supabase:', error)
@@ -445,13 +447,15 @@ export async function createReview(input: {
   quote: string
   name: string
   role: string
-}): Promise<ReviewItem> {
+  imageUrl?: string
+  }): Promise<ReviewItem> {
   if (!supabase) {
     const newItem: ReviewItem = {
       id: `rev-${Date.now()}`,
       quote: input.quote.trim(),
       name: input.name.trim(),
       role: input.role.trim(),
+      imageUrl: input.imageUrl?.trim() || undefined,
       createdAt: new Date().toISOString(),
     }
     initialSeedReviews.push(newItem)
@@ -464,9 +468,10 @@ export async function createReview(input: {
       .insert({
         quote: input.quote.trim(),
         name: input.name.trim(),
-        role: input.role.trim(),
-      })
-      .select()
+  role: input.role.trim(),
+  image_url: input.imageUrl?.trim() || null,
+  })
+  .select()
       .single()
 
     if (error) throw error
@@ -476,6 +481,7 @@ export async function createReview(input: {
       quote: data.quote,
       name: data.name,
       role: data.role,
+      imageUrl: data.image_url || undefined,
       createdAt: data.created_at,
     }
   } catch (error) {
