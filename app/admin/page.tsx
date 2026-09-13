@@ -40,10 +40,8 @@ const defaultSections = [
 ]
 
 export default function AdminPage() {
-  const [code, setCode] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [useEmailAuth, setUseEmailAuth] = useState(false)
   const [authed, setAuthed] = useState(false)
   const [activeTab, setActiveTab] = useState<'bookings' | 'results' | 'reviews' | 'services' | 'analytics' | 'visibility' | 'contact'>('bookings')
   const [message, setMessage] = useState('')
@@ -112,11 +110,7 @@ export default function AdminPage() {
 
   // Check auth session
   useEffect(() => {
-    if (sessionStorage.getItem('clinic-admin') === 'yes') {
-      // Migrate older fallback sessions that were saved without the API token.
-      if (!sessionStorage.getItem('admin-token')) {
-        sessionStorage.setItem('admin-token', 'fallback-token')
-      }
+    if (sessionStorage.getItem('clinic-admin') === 'yes' && sessionStorage.getItem('admin-token')) {
       setAuthed(true)
     }
 
@@ -221,57 +215,32 @@ export default function AdminPage() {
   }
 
   async function handleLogin() {
-    if (useEmailAuth) {
-      if (!email || !password) {
-        setMessage('Vui lòng nhập email và mật khẩu.')
-        return
-      }
-    } else {
-      if (!code) {
-        setMessage('Vui lòng nhập mã bảo mật.')
-        return
-      }
+    if (!email || !password) {
+      setMessage('Vui lòng nhập email và mật khẩu.')
+      return
     }
 
     setIsLoggingIn(true)
     setMessage('')
 
     try {
-      const body = useEmailAuth
-        ? { email, password }
-        : { code }
-
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ email, password }),
       })
-
       const data = await res.json()
-      if (res.ok && data.success) {
-        sessionStorage.setItem('clinic-admin', 'yes')
-        sessionStorage.setItem('admin-token', data.token)
-        if (data.user) {
-          sessionStorage.setItem('admin-email', data.user.email)
-        }
-        setAuthed(true)
-        setMessage('Đăng nhập quản trị thành công.')
-      } else {
-        setMessage(data.error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.')
+      if (!res.ok || !data.success) {
+        setMessage(data.error || 'Email hoặc mật khẩu không hợp lệ.')
+        return
       }
-    } catch (error) {
-      // Fallback for development
-      if (!useEmailAuth && code === 'DRNAM2026') {
-        sessionStorage.setItem('clinic-admin', 'yes')
-        sessionStorage.setItem('admin-token', 'fallback-token')
-        setAuthed(true)
-      } else if (useEmailAuth && email === 'admin@drnamnguyenclinic.com' && password === 'DRNAM2026') {
-        sessionStorage.setItem('clinic-admin', 'yes')
-        sessionStorage.setItem('admin-token', 'fallback-token')
-        setAuthed(true)
-      } else {
-        setMessage('Lỗi kết nối. Vui lòng thử lại.')
-      }
+      sessionStorage.setItem('clinic-admin', 'yes')
+      sessionStorage.setItem('admin-token', data.token)
+      sessionStorage.setItem('admin-email', data.user.email)
+      setAuthed(true)
+      setMessage('Đăng nhập quản trị thành công.')
+    } catch {
+      setMessage('Không thể kết nối máy chủ. Vui lòng thử lại.')
     } finally {
       setIsLoggingIn(false)
     }
@@ -279,8 +248,11 @@ export default function AdminPage() {
 
   function handleLogout() {
     sessionStorage.removeItem('clinic-admin')
+    sessionStorage.removeItem('admin-token')
+    sessionStorage.removeItem('admin-email')
     setAuthed(false)
-    setCode('')
+    setEmail('')
+    setPassword('')
     setMessage('')
   }
 
@@ -602,32 +574,6 @@ export default function AdminPage() {
             Khu vực quản lý thông tin bệnh nhân và cài đặt nội dung phòng khám Dr. Nam Nguyen Clinic.
           </p>
 
-          {/* Auth mode toggle */}
-          <div className="mt-6 flex gap-2">
-            <button
-              type="button"
-              onClick={() => { setUseEmailAuth(false); setMessage('') }}
-              className={`flex-1 rounded-xl px-4 py-2 text-xs font-bold transition ${
-                !useEmailAuth
-                  ? 'bg-[#0e5d94] text-white'
-                  : 'border border-[#c8dcea] text-[#66829a] hover:bg-[#f6faff]'
-              }`}
-            >
-              Mã bảo mật
-            </button>
-            <button
-              type="button"
-              onClick={() => { setUseEmailAuth(true); setMessage('') }}
-              className={`flex-1 rounded-xl px-4 py-2 text-xs font-bold transition ${
-                useEmailAuth
-                  ? 'bg-[#0e5d94] text-white'
-                  : 'border border-[#c8dcea] text-[#66829a] hover:bg-[#f6faff]'
-              }`}
-            >
-              Email & Mật khẩu
-            </button>
-          </div>
-
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -635,26 +581,10 @@ export default function AdminPage() {
             }}
             className="mt-6"
           >
-            {!useEmailAuth ? (
-              <>
-                <label htmlFor="adminCode" className="mb-2 block text-xs font-bold text-[#0e3a63]">
-                  Mã truy cập quản trị (Demo: DRNAM2026)
-                </label>
-                <input
-                  id="adminCode"
-                  aria-label="Admin code"
-                  type="password"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Nhập mã bảo mật..."
-                  className="w-full rounded-xl border border-[#c8dcea] px-4 py-3 text-sm outline-none transition focus:border-[#0e5d94] focus:ring-2 focus:ring-[#8bc5e6]/50"
-                />
-              </>
-            ) : (
-              <>
-                <label htmlFor="email" className="mb-2 block text-xs font-bold text-[#0e3a63]">
-                  Email quản trị
-                </label>
+            <>
+              <label htmlFor="email" className="mb-2 block text-xs font-bold text-[#0e3a63]">
+                Email quản trị
+              </label>
                 <input
                   id="email"
                   aria-label="Email"
@@ -678,7 +608,6 @@ export default function AdminPage() {
                   className="w-full rounded-xl border border-[#c8dcea] px-4 py-3 text-sm outline-none transition focus:border-[#0e5d94] focus:ring-2 focus:ring-[#8bc5e6]/50"
                 />
               </>
-            )}
 
             <button
               type="submit"

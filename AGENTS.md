@@ -35,13 +35,12 @@ Required for production deployment:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon key (public)
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (secret, server-only)
 
-For local development without Supabase, leave these empty - the app will use fallback mode.
+Supabase is required for admin authentication and production data persistence.
 
 ## Admin Access
 
 - URL: `/admin`
-- Demo code: `DRNAM2026` (fallback mode)
-- Production: Use Supabase Auth with email/password
+- Production: Use Supabase Auth with email/password and an allow-listed `admin_profiles` record
 - Shortcut: `Ctrl + Shift + A` on any page
 
 ## Database Schema

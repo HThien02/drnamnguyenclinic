@@ -154,9 +154,11 @@ CREATE POLICY "Admin can insert reviews" ON reviews FOR INSERT WITH CHECK (true)
 CREATE POLICY "Admin can update reviews" ON reviews FOR UPDATE USING (true);
 CREATE POLICY "Admin can delete reviews" ON reviews FOR DELETE USING (true);
 
--- Policies for admin_profiles (only authenticated admins can read)
-CREATE POLICY "Authenticated can view admin profiles" ON admin_profiles FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Service role can manage admin profiles" ON admin_profiles FOR ALL USING (auth.role() = 'service_role');
+-- Policies for admin_profiles: authenticated users may verify their own allow-list record.
+DROP POLICY IF EXISTS "Authenticated can view admin profiles" ON admin_profiles;
+CREATE POLICY "Authenticated can view own admin profile" ON admin_profiles FOR SELECT TO authenticated USING (lower(email) = lower((select auth.jwt() ->> 'email')));
+DROP POLICY IF EXISTS "Service role can manage admin profiles" ON admin_profiles;
+CREATE POLICY "Service role can manage admin profiles" ON admin_profiles FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Insert initial seed data
 INSERT INTO bookings (name, phone, service, note, status, created_at) VALUES

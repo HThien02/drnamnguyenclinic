@@ -6,24 +6,9 @@ export interface AdminUser {
   role: string
 }
 
-/**
- * Admin authentication using Supabase Auth
- * For production, this uses proper JWT tokens from Supabase
- * For development without Supabase, falls back to code-based auth
- */
-
+/** Admin authentication using Supabase Auth and the admin_profiles allow-list. */
 export async function signInWithEmail(email: string, password: string) {
-  if (!supabase) {
-    // Fallback for development without Supabase
-    if (email === 'admin@drnamnguyenclinic.com' && password === 'DRNAM2026') {
-      return {
-        success: true,
-        user: { id: 'admin-fallback', email, role: 'admin' },
-        session: { access_token: 'fallback-token' },
-      }
-    }
-    return { success: false, error: 'Invalid credentials' }
-  }
+  if (!supabase) return { success: false, error: 'Authentication is not configured.' }
 
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -72,18 +57,7 @@ export async function signOut() {
 }
 
 export async function getSession() {
-  if (!supabase) {
-    // Check for fallback session in localStorage
-    if (typeof window !== 'undefined') {
-      const fallbackSession = localStorage.getItem('admin-fallback-session')
-      if (fallbackSession) {
-        return {
-          user: { id: 'admin-fallback', email: 'admin@drnamnguyenclinic.com', role: 'admin' },
-        }
-      }
-    }
-    return null
-  }
+  if (!supabase) return null
 
   try {
     const { data: { session }, error } = await supabase.auth.getSession()
@@ -111,11 +85,7 @@ export async function getSession() {
 }
 
 export async function verifyAdminToken(token: string): Promise<boolean> {
-  // The legacy admin-code login intentionally works in production without
-  // requiring a Supabase user. Check it before attempting JWT validation.
-  if (token === 'DRNAM2026' || token === 'fallback-token') return true
-
-  if (!supabase) return false
+  if (!supabase || !token) return false
 
   try {
     const { data: { user }, error } = await supabase.auth.getUser(token)
