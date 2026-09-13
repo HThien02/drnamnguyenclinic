@@ -365,6 +365,26 @@ export default function AdminPage() {
     }
   }
 
+  async function handleReviewImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const response = await fetch('/api/upload', { method: 'POST', body: formData })
+      const data = await response.json()
+      if (!response.ok || !data.success) throw new Error(data.error || 'Không thể tải ảnh khách hàng lên.')
+      setNewReview((current) => ({ ...current, imageUrl: data.url }))
+      setMessage('Đã tải ảnh khách hàng lên. Hãy lưu cảm nhận để ghi vào database.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Không thể tải ảnh khách hàng lên.')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   // Review Actions
   async function handleAddReview(e: React.FormEvent) {
     e.preventDefault()
@@ -1179,9 +1199,19 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="mb-1 block text-xs font-bold text-[#0e3a63]">Ảnh khách hàng (URL tùy chọn)</label>
-                    <input type="url" placeholder="https://.../customer.jpg" value={newReview.imageUrl} onChange={(e) => setNewReview({ ...newReview, imageUrl: e.target.value })} className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]" />
-                    <p className="mt-1 text-[11px] text-[#66829a]">Ảnh này sẽ chuyển cùng quote, tên và thông tin khách hàng trên carousel.</p>
+                    <label className="mb-2 block text-xs font-bold text-[#0e3a63]">Ảnh khách hàng (tải từ máy)</label>
+                    <div className="flex flex-wrap items-center gap-4 rounded-xl border-2 border-dashed border-[#b7d4e5] bg-white p-4">
+                      <div className="flex size-20 items-center justify-center overflow-hidden rounded-lg border border-[#dce8f2] bg-[#f6faff]">
+                        {newReview.imageUrl ? <img src={newReview.imageUrl} alt="Xem trước ảnh khách hàng" className="h-full w-full object-cover" /> : <ImageIcon className="size-6 text-[#8ca8be]" />}
+                      </div>
+                      <div>
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#0e5d94] px-3 py-2 text-xs font-bold text-white hover:bg-[#0c4e7d]">
+                          <Upload className="size-4" /> {isUploading ? 'Đang tải ảnh...' : newReview.imageUrl ? 'Thay ảnh' : 'Chọn ảnh từ máy'}
+                          <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handleReviewImageSelect} disabled={isUploading} />
+                        </label>
+                        <p className="mt-2 text-[11px] text-[#66829a]">Ảnh sẽ được lưu vào Supabase Storage, còn đường dẫn được lưu cùng cảm nhận.</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

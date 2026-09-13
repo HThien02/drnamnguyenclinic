@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import path from 'path'
-import fs from 'fs/promises'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
 export async function POST(request: Request) {
@@ -63,17 +61,11 @@ export async function POST(request: Request) {
       })
     }
 
-    // 2. Môi trường Local / Demo chưa gắn Supabase: Lưu vào thư mục public/uploads
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-    await fs.mkdir(uploadsDir, { recursive: true })
-    const filePath = path.join(uploadsDir, fileName)
-    await fs.writeFile(filePath, buffer)
+    return NextResponse.json(
+      { success: false, error: 'Supabase Storage chưa được cấu hình. Không thể lưu ảnh bền vững trên production.' },
+      { status: 503 }
+    )
 
-    return NextResponse.json({
-      success: true,
-      url: `/uploads/${fileName}`,
-      message: 'Tải ảnh lên thư mục local thành công.',
-    })
   } catch (error: any) {
     console.error('Upload error:', error)
     return NextResponse.json(
