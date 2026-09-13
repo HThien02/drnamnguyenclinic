@@ -403,7 +403,7 @@ export default function AdminPage() {
       if (data.success && data.review) {
         setReviews((prev) => [...prev, data.review])
         setShowAddReview(false)
-        setNewReview({ quote: '', name: '', role: '' })
+        setNewReview({ quote: '', name: '', role: '', imageUrl: '' })
         setMessage('Đã thêm đánh giá khách hàng mới thành công!')
       } else {
         alert(data.error || 'Có lỗi khi thêm đánh giá')

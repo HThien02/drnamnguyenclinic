@@ -433,9 +433,9 @@ export async function getReviews(): Promise<ReviewItem[]> {
       id: r.id,
       quote: r.quote,
       name: r.name,
-  role: r.role,
-  imageUrl: r.image_url || undefined,
-  createdAt: r.created_at,
+      role: r.role,
+      imageUrl: r.image_url || undefined,
+      createdAt: r.created_at,
     }))
   } catch (error) {
     console.error('Error reading reviews from Supabase:', error)
@@ -468,10 +468,10 @@ export async function createReview(input: {
       .insert({
         quote: input.quote.trim(),
         name: input.name.trim(),
-  role: input.role.trim(),
-  image_url: input.imageUrl?.trim() || null,
-  })
-  .select()
+        role: input.role.trim(),
+        image_url: input.imageUrl?.trim() || null,
+      })
+      .select('id, quote, name, role, image_url, created_at')
       .single()
 
     if (error) throw error

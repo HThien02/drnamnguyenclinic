@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import path from 'path'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
 export async function POST(request: Request) {
