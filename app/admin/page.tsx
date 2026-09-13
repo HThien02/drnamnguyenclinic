@@ -79,6 +79,7 @@ export default function AdminPage() {
     quote: '',
     name: '',
     role: '',
+    imageUrl: '',
   })
 
   // Visibility state
@@ -397,7 +398,12 @@ export default function AdminPage() {
       const res = await fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newReview),
+        body: JSON.stringify({
+          quote: newReview.quote.trim(),
+          name: newReview.name.trim(),
+          role: newReview.role.trim(),
+          imageUrl: newReview.imageUrl || null,
+        }),
       })
       const data = await res.json()
       if (data.success && data.review) {
