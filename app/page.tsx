@@ -818,15 +818,13 @@ export default function Home() {
           <div className="mx-auto flex max-w-[1320px] flex-col justify-between gap-10 md:flex-row md:items-center">
             <div>
               <p className="font-serif text-2xl font-bold text-white">Dr. Nam Nguyen Clinic</p>
-              <p className="mt-3 text-sm text-[#8ca8be]">
-                Cư xá Bắc Hải, Hoà Hưng, TP Hồ Chí Minh
-              </p>
+              <p className="mt-3 text-sm text-[#8ca8be]">{contactSettings.address}</p>
             </div>
 
             <div className="flex flex-col items-start gap-4 text-sm md:items-end">
               <div>
-                <p className="font-bold text-white">Hotline: 0395000500</p>
-                <p className="text-xs text-[#8ca8be]">Giờ làm việc: 09:00 — 19:00 hàng ngày</p>
+                <p className="font-bold text-white">Hotline: {contactSettings.phone}</p>
+                <p className="text-xs text-[#8ca8be]">Giờ làm việc: {contactSettings.workingHours}</p>
               </div>
 
               {/* Discrete Admin Link */}
