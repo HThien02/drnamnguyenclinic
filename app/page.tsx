@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 
 import { copy, languages, servicesData, initialResults, initialReviews } from '@/lib/constants/locales'
-import type { Language, ContactSettings } from '@/types/clinic'
+import type { Language, ContactSettings, SignatureService, ResultItem, ReviewItem } from '@/types/clinic'
 
 function formatName(value: string) {
   return value
@@ -40,6 +40,8 @@ export default function Home() {
   const [reviewIndex, setReviewIndex] = useState(0)
   const [results, setResults] = useState<ResultItem[]>(initialResults)
   const [reviews, setReviews] = useState<ReviewItem[]>(initialReviews)
+  const [signatureServices, setSignatureServices] = useState<SignatureService[]>([])
+  const [serviceFilter, setServiceFilter] = useState<'All' | 'Facial' | 'Body'>('All')
 
   // Booking form state
   const [formName, setFormName] = useState('')
@@ -55,6 +57,7 @@ export default function Home() {
     hero: true,
     stats: true,
     services: true,
+    signatureServices: true,
     results: true,
     reviews: true,
     booking: true,
@@ -89,6 +92,11 @@ export default function Home() {
     )
   }, [resultIndex, results])
 
+  const filteredSignatureServices = useMemo(() => {
+    if (serviceFilter === 'All') return signatureServices
+    return signatureServices.filter((svc) => svc.category === serviceFilter)
+  }, [signatureServices, serviceFilter])
+
   // Load dynamic results and reviews from API
   useEffect(() => {
     fetch('/api/results')
@@ -105,6 +113,24 @@ export default function Home() {
       .then((data) => {
         if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
           setReviews(data.reviews)
+        }
+      })
+      .catch(() => {})
+
+    fetch('/api/services')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.services)) {
+          setSignatureServices(data.services)
+        }
+      })
+      .catch(() => {})
+
+    fetch('/api/contact-settings')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.settings) {
+          setContactSettings(data.settings)
         }
       })
       .catch(() => {})
@@ -125,12 +151,6 @@ export default function Home() {
         } else if (typeof parsed === 'object' && parsed !== null) {
           setVisibility((prev) => ({ ...prev, ...parsed }))
         }
-      }
-
-      const savedContact = localStorage.getItem('clinic-contact')
-      if (savedContact) {
-        const parsed = JSON.parse(savedContact)
-        setContactSettings(parsed)
       }
     } catch {
       // Ignore storage read errors
@@ -496,6 +516,65 @@ export default function Home() {
                 <p className="text-sm leading-6 text-[#66829a]">{t.philosophy6Detail}</p>
               </div>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* Signature Services Section */}
+      {visibility.signatureServices !== false && signatureServices.length > 0 && (
+        <section id="signature-services" className="mx-auto max-w-[1320px] px-6 py-24 lg:px-10">
+          <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#1873aa]">
+            {t.signatureServices}
+          </p>
+          <h2 className="mb-10 max-w-[780px] font-serif text-4xl leading-[1.1] text-[#0e3a63] sm:text-5xl lg:text-6xl">
+            {t.signatureServicesTitle}
+          </h2>
+
+          <div className="mb-12 flex flex-wrap gap-3">
+            {(['All', 'Facial', 'Body'] as const).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setServiceFilter(filter)}
+                className={`rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
+                  serviceFilter === filter
+                    ? 'bg-[#0e5d94] text-white shadow-md'
+                    : 'border border-[#c8dcea] bg-white text-[#1873aa] hover:bg-[#f6faff]'
+                }`}
+              >
+                {filter === 'All' ? t.filterAll : filter === 'Facial' ? t.filterFacial : t.filterBody}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredSignatureServices.map((svc) => (
+              <article
+                key={svc.id}
+                className="group flex flex-col overflow-hidden rounded-[28px] border border-[#d8e8f2] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="relative aspect-[1.15] overflow-hidden bg-[#eaf5fb]">
+                  <img
+                    src={svc.imageUrl}
+                    alt={svc.name}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col p-6">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1873aa]">
+                    {svc.category}
+                  </span>
+                  <h3 className="mt-2 font-serif text-xl font-bold text-[#0e3a63]">{svc.name}</h3>
+                  <p className="mt-3 flex-1 text-sm leading-7 text-[#66829a]">{svc.description}</p>
+                  <a
+                    href="#booking"
+                    className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#0e5d94] transition hover:gap-2.5"
+                  >
+                    {t.learnMore}
+                    <ArrowRight className="size-3.5" />
+                  </a>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
       )}

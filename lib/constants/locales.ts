@@ -31,6 +31,12 @@ export interface CopyTranslation {
   philosophy6Detail: string
   services: string
   servicesTitle: string
+  signatureServices: string
+  signatureServicesTitle: string
+  filterAll: string
+  filterFacial: string
+  filterBody: string
+  learnMore: string
   results: string
   resultsTitle: string
   feedback: string
@@ -85,6 +91,12 @@ export const copy: Record<Language, CopyTranslation> = {
     philosophy6Detail: 'Dedicated follow-up and recovery guidance designed according to each patient\'s individual needs.',
     services: 'Our expertise',
     servicesTitle: 'Every good plan begins with understanding.',
+    signatureServices: 'Signature Services',
+    signatureServicesTitle: 'Comprehensive Aesthetic Solutions',
+    filterAll: 'All',
+    filterFacial: 'Facial',
+    filterBody: 'Body',
+    learnMore: 'Learn More',
     results: 'Reference results',
     resultsTitle: 'Real change, in the most natural way.',
     feedback: 'What patients say',

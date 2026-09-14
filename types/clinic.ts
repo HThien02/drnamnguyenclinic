@@ -21,6 +21,19 @@ export interface ServiceItem {
   iconName: 'Sparkles' | 'ShieldCheck' | 'Check'
 }
 
+export interface SignatureService {
+  id: string
+  name: string
+  slug: string
+  category: 'Facial' | 'Body'
+  description: string
+  imageUrl: string
+  isActive: boolean
+  displayOrder: number
+  createdAt: string
+  updatedAt?: string
+}
+
 export interface ResultItem {
   id?: string
   image: string
@@ -47,10 +60,12 @@ export interface TrackingData {
 }
 
 export interface ContactSettings {
+  id?: string
   phone: string
   whatsappPhone: string
   whatsappMessage: string
   instagramUrl: string
   address: string
   workingHours: string
+  updatedAt?: string
 }

@@ -15,6 +15,7 @@ import {
   Loader2,
   LogOut,
   MessageSquareQuote,
+  Pencil,
   Phone,
   Plus,
   RefreshCw,
@@ -26,12 +27,13 @@ import {
   User,
   X,
 } from 'lucide-react'
-import type { Booking, BookingStatus, ResultItem, ReviewItem, TrackingData, ContactSettings } from '@/types/clinic'
+import type { Booking, BookingStatus, ResultItem, ReviewItem, SignatureService, TrackingData, ContactSettings } from '@/types/clinic'
 
 const defaultSections = [
   { id: 'hero', label: 'Hình ảnh & Giới thiệu Bác sĩ (Hero section)', visible: true },
   { id: 'stats', label: 'Khối số liệu thống kê (12+ năm, 15k khách hàng...)', visible: true },
   { id: 'services', label: 'Danh mục chuyên khoa điều trị', visible: true },
+  { id: 'signatureServices', label: 'Signature Services (Facial / Body)', visible: true },
   { id: 'results', label: 'Băng chuyền kết quả trước / sau (Before & After)', visible: true },
   { id: 'reviews', label: 'Cảm nhận & Đánh giá của bệnh nhân', visible: true },
   { id: 'booking', label: 'Form đăng ký tư vấn trực tuyến', visible: true },
@@ -45,7 +47,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [useEmailAuth, setUseEmailAuth] = useState(false)
   const [authed, setAuthed] = useState(false)
-  const [activeTab, setActiveTab] = useState<'bookings' | 'results' | 'reviews' | 'analytics' | 'visibility' | 'contact'>('bookings')
+  const [activeTab, setActiveTab] = useState<'bookings' | 'results' | 'reviews' | 'signatureServices' | 'analytics' | 'visibility' | 'contact'>('bookings')
   const [message, setMessage] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
@@ -74,6 +76,22 @@ export default function AdminPage() {
     quote: '',
     name: '',
     role: '',
+  })
+
+  // Signature Services state
+  const [signatureServices, setSignatureServices] = useState<SignatureService[]>([])
+  const [loadingServices, setLoadingServices] = useState(false)
+  const [showServiceForm, setShowServiceForm] = useState(false)
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
+  const [isUploadingService, setIsUploadingService] = useState(false)
+  const [serviceForm, setServiceForm] = useState({
+    name: '',
+    slug: '',
+    category: 'Facial' as 'Facial' | 'Body',
+    description: '',
+    imageUrl: '',
+    isActive: true,
+    displayOrder: 0,
   })
 
   // Visibility state
@@ -128,8 +146,24 @@ export default function AdminPage() {
       loadBookings()
       loadResults()
       loadReviews()
+      loadSignatureServices()
+      loadContactSettings()
     }
   }, [authed])
+
+  // Load contact settings from API
+  async function loadContactSettings() {
+    try {
+      const response = await fetch('/api/contact-settings')
+      const data = await response.json()
+
+      if (data.success && data.settings) {
+        setContactSettings(data.settings)
+      }
+    } catch (error) {
+      console.error('Error loading contact settings:', error)
+    }
+  }
 
   async function loadBookings() {
     setLoadingBookings(true)
@@ -173,6 +207,147 @@ export default function AdminPage() {
       console.error('Lỗi tải đánh giá:', err)
     } finally {
       setLoadingReviews(false)
+    }
+  }
+
+  async function loadSignatureServices() {
+    setLoadingServices(true)
+    try {
+      const res = await fetch('/api/admin/services')
+      const data = await res.json()
+      if (data.success && Array.isArray(data.services)) {
+        setSignatureServices(data.services)
+      }
+    } catch (err) {
+      console.error('Lỗi tải Signature Services:', err)
+    } finally {
+      setLoadingServices(false)
+    }
+  }
+
+  function slugify(value: string) {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+  }
+
+  function resetServiceForm() {
+    setServiceForm({
+      name: '',
+      slug: '',
+      category: 'Facial',
+      description: '',
+      imageUrl: '',
+      isActive: true,
+      displayOrder: 0,
+    })
+    setEditingServiceId(null)
+    setShowServiceForm(false)
+  }
+
+  function openAddServiceForm() {
+    resetServiceForm()
+    setShowServiceForm(true)
+  }
+
+  function openEditServiceForm(service: SignatureService) {
+    setServiceForm({
+      name: service.name,
+      slug: service.slug,
+      category: service.category,
+      description: service.description,
+      imageUrl: service.imageUrl,
+      isActive: service.isActive,
+      displayOrder: service.displayOrder,
+    })
+    setEditingServiceId(service.id)
+    setShowServiceForm(true)
+  }
+
+  async function handleServiceFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingService(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setServiceForm((prev) => ({ ...prev, imageUrl: data.url }))
+        setMessage('Đã tải ảnh dịch vụ lên thành công!')
+      } else {
+        alert(data.error || 'Lỗi khi tải ảnh lên')
+      }
+    } catch {
+      alert('Lỗi kết nối khi tải ảnh')
+    } finally {
+      setIsUploadingService(false)
+    }
+  }
+
+  async function handleSaveService(e: React.FormEvent) {
+    e.preventDefault()
+    if (!serviceForm.name.trim() || !serviceForm.slug.trim() || !serviceForm.description.trim()) {
+      alert('Vui lòng nhập đầy đủ tên, slug và mô tả dịch vụ.')
+      return
+    }
+
+    if (!serviceForm.imageUrl) {
+      alert('Vui lòng tải ảnh dịch vụ lên trước khi lưu.')
+      return
+    }
+
+    try {
+      const isEditing = Boolean(editingServiceId)
+      const res = await fetch('/api/admin/services', {
+        method: isEditing ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          isEditing ? { id: editingServiceId, ...serviceForm } : serviceForm
+        ),
+      })
+      const data = await res.json()
+
+      if (data.success && data.service) {
+        if (isEditing) {
+          setSignatureServices((prev) =>
+            prev.map((item) => (item.id === data.service.id ? data.service : item))
+          )
+          setMessage('Đã cập nhật dịch vụ Signature thành công!')
+        } else {
+          setSignatureServices((prev) => [...prev, data.service])
+          setMessage('Đã thêm dịch vụ Signature mới thành công!')
+        }
+        resetServiceForm()
+      } else {
+        alert(data.error || 'Có lỗi khi lưu dịch vụ')
+      }
+    } catch {
+      alert('Lỗi kết nối máy chủ khi lưu dịch vụ')
+    }
+  }
+
+  async function handleDeleteService(id: string) {
+    if (!confirm('Bạn có chắc chắn muốn xóa dịch vụ Signature này?')) return
+    try {
+      const res = await fetch(`/api/admin/services?id=${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        setSignatureServices((prev) => prev.filter((item) => item.id !== id))
+        if (editingServiceId === id) resetServiceForm()
+        setMessage('Đã xóa dịch vụ Signature thành công.')
+      }
+    } catch {
+      setMessage('Lỗi khi xóa dịch vụ Signature.')
     }
   }
 
@@ -400,9 +575,25 @@ export default function AdminPage() {
   }
 
   // Save contact settings
-  function saveContactSettings() {
-    localStorage.setItem('clinic-contact', JSON.stringify(contactSettings))
-    setMessage('Đã cập nhật thông tin liên hệ thành công.')
+  async function saveContactSettings() {
+    try {
+      const response = await fetch('/api/admin/contact-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactSettings),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setMessage('Đã cập nhật thông tin liên hệ thành công.')
+      } else {
+        setMessage('Lỗi khi cập nhật thông tin liên hệ.')
+      }
+    } catch (error) {
+      console.error('Error saving contact settings:', error)
+      setMessage('Lỗi khi cập nhật thông tin liên hệ.')
+    }
   }
 
   // Export CSV
@@ -665,6 +856,18 @@ export default function AdminPage() {
           >
             <MessageSquareQuote className="size-4" />
             <span>Khách hàng nói gì ({reviews.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('signatureServices')}
+            className={`flex items-center gap-2 rounded-t-2xl px-5 py-3 text-xs font-bold uppercase tracking-wider transition ${
+              activeTab === 'signatureServices'
+                ? 'border-b-2 border-[#0e5d94] bg-white text-[#0e5d94] shadow-sm'
+                : 'text-[#66829a] hover:bg-white/50'
+            }`}
+          >
+            <Sparkles className="size-4" />
+            <span>Signature Services ({signatureServices.length})</span>
           </button>
 
           <button
@@ -1176,7 +1379,271 @@ export default function AdminPage() {
           </section>
         )}
 
-        {/* Tab 4: Analytics */}
+        {/* Tab 4: Signature Services Management */}
+        {activeTab === 'signatureServices' && (
+          <section className="mt-6 rounded-3xl border border-[#dce8f2] bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#edf3f8] pb-6">
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-[#0e3a63]">
+                  Quản lý Signature Services
+                </h2>
+                <p className="mt-1 text-xs text-[#66829a]">
+                  Thêm, chỉnh sửa hoặc xóa dịch vụ hiển thị trên mục Signature Services trang chủ.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={loadSignatureServices}
+                  disabled={loadingServices}
+                  className="flex items-center gap-1.5 rounded-xl border border-[#c8dcea] px-3.5 py-2 text-xs font-bold text-[#1873aa] transition hover:bg-[#f6faff]"
+                >
+                  <RefreshCw className={`size-3.5 ${loadingServices ? 'animate-spin' : ''}`} />
+                  Làm mới
+                </button>
+                <button
+                  onClick={() => (showServiceForm && !editingServiceId ? resetServiceForm() : openAddServiceForm())}
+                  className="flex items-center gap-1.5 rounded-xl bg-[#0e5d94] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#0c4e7d]"
+                >
+                  {showServiceForm && !editingServiceId ? <X className="size-4" /> : <Plus className="size-4" />}
+                  {showServiceForm && !editingServiceId ? 'Đóng form' : 'Thêm dịch vụ mới'}
+                </button>
+              </div>
+            </div>
+
+            {showServiceForm && (
+              <form onSubmit={handleSaveService} className="mt-6 rounded-2xl border border-sky-200 bg-[#f6faff] p-6">
+                <h3 className="flex items-center gap-2 font-serif text-lg font-bold text-[#0e3a63]">
+                  <Sparkles className="size-5 text-[#1873aa]" />
+                  {editingServiceId ? 'Chỉnh sửa dịch vụ Signature' : 'Thêm dịch vụ Signature mới'}
+                </h3>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-[#0e3a63]">Tên dịch vụ *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ví dụ: Rhinoplasty"
+                      value={serviceForm.name}
+                      onChange={(e) => {
+                        const name = e.target.value
+                        setServiceForm((prev) => ({
+                          ...prev,
+                          name,
+                          slug: editingServiceId ? prev.slug : slugify(name),
+                        }))
+                      }}
+                      className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-[#0e3a63]">Slug *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="rhinoplasty"
+                      value={serviceForm.slug}
+                      onChange={(e) => setServiceForm({ ...serviceForm, slug: slugify(e.target.value) })}
+                      className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-[#0e3a63]">Danh mục *</label>
+                    <select
+                      value={serviceForm.category}
+                      onChange={(e) =>
+                        setServiceForm({ ...serviceForm, category: e.target.value as 'Facial' | 'Body' })
+                      }
+                      className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]"
+                    >
+                      <option value="Facial">Facial</option>
+                      <option value="Body">Body</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-[#0e3a63]">Thứ tự hiển thị</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={serviceForm.displayOrder}
+                      onChange={(e) =>
+                        setServiceForm({ ...serviceForm, displayOrder: parseInt(e.target.value, 10) || 0 })
+                      }
+                      className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="mb-1 block text-xs font-bold text-[#0e3a63]">Mô tả ngắn *</label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="Mô tả ngắn gọn về dịch vụ..."
+                      value={serviceForm.description}
+                      onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
+                      className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-[#0e3a63]">Trạng thái</label>
+                    <select
+                      value={serviceForm.isActive ? 'active' : 'inactive'}
+                      onChange={(e) =>
+                        setServiceForm({ ...serviceForm, isActive: e.target.value === 'active' })
+                      }
+                      className="w-full rounded-xl border border-[#c8dcea] bg-white px-4 py-2.5 text-xs outline-none focus:border-[#0e5d94]"
+                    >
+                      <option value="active">Active (hiển thị)</option>
+                      <option value="inactive">Inactive (ẩn)</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="mb-2 block text-xs font-bold text-[#0e3a63]">Ảnh dịch vụ *</label>
+                    <div className="flex flex-col gap-4 rounded-2xl border-2 border-dashed border-[#b7d4e5] bg-white p-5 sm:flex-row sm:items-center">
+                      <div className="relative aspect-[1.15] w-44 shrink-0 overflow-hidden rounded-xl border border-[#dce8f2] bg-slate-100 shadow-sm flex items-center justify-center">
+                        {serviceForm.imageUrl ? (
+                          <img
+                            src={serviceForm.imageUrl}
+                            alt="Xem trước ảnh dịch vụ"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-[#8ca8be] p-4 text-center">
+                            <ImageIcon className="size-8 mb-1 opacity-60" />
+                            <span className="text-[10px]">Chưa chọn ảnh</span>
+                          </div>
+                        )}
+                        {isUploadingService && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">
+                            <Loader2 className="size-6 animate-spin" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1">
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#b7d4e5] bg-[#eaf5fb] px-5 py-3 text-xs font-bold text-[#0e5d94] shadow-sm transition hover:bg-[#d8ebf7]">
+                          <Upload className="size-4" />
+                          <span>
+                            {isUploadingService
+                              ? 'Đang tải ảnh lên...'
+                              : serviceForm.imageUrl
+                              ? 'Chọn lại ảnh khác'
+                              : 'Chọn tệp ảnh từ máy tính'}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/webp, image/gif, image/avif"
+                            onChange={handleServiceFileSelect}
+                            className="hidden"
+                            disabled={isUploadingService}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={resetServiceForm}
+                    className="rounded-xl border border-[#c8dcea] bg-white px-4 py-2 text-xs font-bold text-[#55738f]"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-[#0e5d94] px-6 py-2 text-xs font-bold text-white shadow hover:bg-[#0c4e7d]"
+                  >
+                    {editingServiceId ? 'Cập nhật dịch vụ' : 'Lưu dịch vụ'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="mt-6 overflow-x-auto rounded-2xl border border-[#dce8f2]">
+              <table className="w-full min-w-[760px] text-left text-xs">
+                <thead className="border-b border-[#dce8f2] bg-[#f6faff] text-[11px] font-bold uppercase text-[#55738f]">
+                  <tr>
+                    <th className="px-5 py-3.5">Ảnh</th>
+                    <th className="px-5 py-3.5">Tên dịch vụ</th>
+                    <th className="px-5 py-3.5">Danh mục</th>
+                    <th className="px-5 py-3.5">Trạng thái</th>
+                    <th className="px-5 py-3.5">Thứ tự</th>
+                    <th className="px-5 py-3.5 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#edf3f8]">
+                  {signatureServices.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-10 text-center text-sm text-[#8ca8be]">
+                        Chưa có dịch vụ nào. Hãy bấm &quot;Thêm dịch vụ mới&quot;.
+                      </td>
+                    </tr>
+                  ) : (
+                    signatureServices.map((svc) => (
+                      <tr key={svc.id} className="transition hover:bg-[#fafcff]">
+                        <td className="px-5 py-4">
+                          <div className="h-14 w-20 overflow-hidden rounded-lg border border-[#dce8f2] bg-slate-100">
+                            <img src={svc.imageUrl} alt={svc.name} className="h-full w-full object-cover" />
+                          </div>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="font-bold text-[#0e3a63]">{svc.name}</p>
+                          <p className="mt-0.5 text-[11px] text-[#8ca8be]">{svc.slug}</p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="rounded bg-[#eaf5fb] px-2 py-1 font-medium text-[#0e5d94]">
+                            {svc.category}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
+                              svc.isActive
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-slate-100 text-slate-500'
+                            }`}
+                          >
+                            {svc.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 font-medium text-[#0e3a63]">{svc.displayOrder}</td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => openEditServiceForm(svc)}
+                              aria-label="Chỉnh sửa dịch vụ"
+                              className="rounded-lg p-1.5 text-[#1873aa] transition hover:bg-[#eaf5fb]"
+                              title="Chỉnh sửa"
+                            >
+                              <Pencil className="size-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteService(svc.id)}
+                              aria-label="Xóa dịch vụ"
+                              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                              title="Xóa dịch vụ"
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* Tab 5: Analytics */}
         {activeTab === 'analytics' && (
           <section className="mt-6 space-y-6">
             <div className="rounded-3xl border border-[#dce8f2] bg-white p-6 shadow-sm">

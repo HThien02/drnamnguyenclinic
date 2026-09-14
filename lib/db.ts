@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Booking, BookingStatus, ResultItem, ReviewItem } from '@/types/clinic'
+import type { Booking, BookingStatus, ResultItem, ReviewItem, SignatureService, ContactSettings } from '@/types/clinic'
 
 // Initial seed data for fallback when Supabase is not configured
 const initialSeedBookings: Booking[] = [
@@ -84,6 +84,53 @@ const initialSeedReviews: ReviewItem[] = [
     name: 'Sarah Jenkins',
     role: 'Medical Tourism · 32 years old (Australia)',
     createdAt: '2026-09-03T00:00:00.000Z',
+  },
+]
+
+const initialSeedSignatureServices: SignatureService[] = [
+  {
+    id: 'svc-1',
+    name: 'Rhinoplasty',
+    slug: 'rhinoplasty',
+    category: 'Facial',
+    description: 'Reshaping the nose with precision and natural-looking results for facial harmony.',
+    imageUrl: '/images/before-after-surgery.png',
+    isActive: true,
+    displayOrder: 1,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'svc-2',
+    name: 'Facelift',
+    slug: 'facelift',
+    category: 'Facial',
+    description: 'Comprehensive facial rejuvenation to restore youthful contours and reduce signs of aging.',
+    imageUrl: '/images/before-after-result.png',
+    isActive: true,
+    displayOrder: 2,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'svc-3',
+    name: 'Liposuction',
+    slug: 'liposuction',
+    category: 'Body',
+    description: 'Targeted fat removal to sculpt and contour the body for a refined silhouette.',
+    imageUrl: '/images/before-after-surgery.png',
+    isActive: true,
+    displayOrder: 3,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'svc-4',
+    name: 'Tummy Tuck',
+    slug: 'tummy-tuck',
+    category: 'Body',
+    description: 'Abdominoplasty to remove excess skin and tighten abdominal muscles for a flatter midsection.',
+    imageUrl: '/images/before-after-result.png',
+    isActive: true,
+    displayOrder: 4,
+    createdAt: new Date().toISOString(),
   },
 ]
 
@@ -411,5 +458,359 @@ export async function deleteReview(id: string): Promise<boolean> {
   } catch (error) {
     console.error('Error deleting review from Supabase:', error)
     return false
+  }
+}
+
+// ================= SIGNATURE SERVICES =================
+export async function getSignatureServices(): Promise<SignatureService[]> {
+  if (!supabase) {
+    return initialSeedSignatureServices
+      .filter((s) => s.isActive)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+
+    if (error) throw error
+
+    return data.map((s) => ({
+      id: s.id,
+      name: s.name,
+      slug: s.slug,
+      category: s.category as 'Facial' | 'Body',
+      description: s.description,
+      imageUrl: s.image_url,
+      isActive: s.is_active,
+      displayOrder: s.display_order,
+      createdAt: s.created_at,
+      updatedAt: s.updated_at,
+    }))
+  } catch (error) {
+    console.error('Error reading signature services from Supabase:', error)
+    return []
+  }
+}
+
+export async function getAllSignatureServices(): Promise<SignatureService[]> {
+  if (!supabase) {
+    return [...initialSeedSignatureServices].sort((a, b) => a.displayOrder - b.displayOrder)
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .order('display_order', { ascending: true })
+
+    if (error) throw error
+
+    return data.map((s) => ({
+      id: s.id,
+      name: s.name,
+      slug: s.slug,
+      category: s.category as 'Facial' | 'Body',
+      description: s.description,
+      imageUrl: s.image_url,
+      isActive: s.is_active,
+      displayOrder: s.display_order,
+      createdAt: s.created_at,
+      updatedAt: s.updated_at,
+    }))
+  } catch (error) {
+    console.error('Error reading all signature services from Supabase:', error)
+    return []
+  }
+}
+
+export async function createSignatureService(input: {
+  name: string
+  slug: string
+  category: 'Facial' | 'Body'
+  description: string
+  imageUrl: string
+  isActive: boolean
+  displayOrder: number
+}): Promise<SignatureService> {
+  if (!supabase) {
+    const newService: SignatureService = {
+      id: `svc-${Date.now()}`,
+      name: input.name,
+      slug: input.slug,
+      category: input.category,
+      description: input.description,
+      imageUrl: input.imageUrl,
+      isActive: input.isActive,
+      displayOrder: input.displayOrder,
+      createdAt: new Date().toISOString(),
+    }
+    initialSeedSignatureServices.push(newService)
+    return newService
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .insert({
+        name: input.name,
+        slug: input.slug,
+        category: input.category,
+        description: input.description,
+        image_url: input.imageUrl,
+        is_active: input.isActive,
+        display_order: input.displayOrder,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return {
+      id: data.id,
+      name: data.name,
+      slug: data.slug,
+      category: data.category as 'Facial' | 'Body',
+      description: data.description,
+      imageUrl: data.image_url,
+      isActive: data.is_active,
+      displayOrder: data.display_order,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    }
+  } catch (error) {
+    console.error('Error creating signature service in Supabase:', error)
+    throw error
+  }
+}
+
+export async function updateSignatureService(
+  id: string,
+  input: {
+    name?: string
+    slug?: string
+    category?: 'Facial' | 'Body'
+    description?: string
+    imageUrl?: string
+    isActive?: boolean
+    displayOrder?: number
+  }
+): Promise<SignatureService | null> {
+  if (!supabase) {
+    const index = initialSeedSignatureServices.findIndex((s) => s.id === id)
+    if (index === -1) return null
+
+    const updated: SignatureService = {
+      ...initialSeedSignatureServices[index],
+      ...(input.name !== undefined && { name: input.name }),
+      ...(input.slug !== undefined && { slug: input.slug }),
+      ...(input.category !== undefined && { category: input.category }),
+      ...(input.description !== undefined && { description: input.description }),
+      ...(input.imageUrl !== undefined && { imageUrl: input.imageUrl }),
+      ...(input.isActive !== undefined && { isActive: input.isActive }),
+      ...(input.displayOrder !== undefined && { displayOrder: input.displayOrder }),
+      updatedAt: new Date().toISOString(),
+    }
+    initialSeedSignatureServices[index] = updated
+    return updated
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .update({
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.slug !== undefined && { slug: input.slug }),
+        ...(input.category !== undefined && { category: input.category }),
+        ...(input.description !== undefined && { description: input.description }),
+        ...(input.imageUrl !== undefined && { image_url: input.imageUrl }),
+        ...(input.isActive !== undefined && { is_active: input.isActive }),
+        ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return {
+      id: data.id,
+      name: data.name,
+      slug: data.slug,
+      category: data.category as 'Facial' | 'Body',
+      description: data.description,
+      imageUrl: data.image_url,
+      isActive: data.is_active,
+      displayOrder: data.display_order,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    }
+  } catch (error) {
+    console.error('Error updating signature service in Supabase:', error)
+    return null
+  }
+}
+
+export async function deleteSignatureService(id: string): Promise<boolean> {
+  if (!supabase) {
+    const index = initialSeedSignatureServices.findIndex((s) => s.id === id)
+    if (index === -1) return false
+    initialSeedSignatureServices.splice(index, 1)
+    return true
+  }
+
+  try {
+    const { error } = await supabase.from('services').delete().eq('id', id)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('Error deleting signature service from Supabase:', error)
+    return false
+  }
+}
+
+// ================= CONTACT SETTINGS =================
+export async function getContactSettings(): Promise<ContactSettings> {
+  if (!supabase) {
+    // Fallback default settings
+    return {
+      phone: '0932501411',
+      whatsappPhone: '84932501411',
+      whatsappMessage: 'Xin chào, tôi muốn tư vấn về...',
+      instagramUrl: 'https://www.instagram.com/hieuthien.1802/',
+      address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+      workingHours: '09:00 — 19:00 (Thứ 2 - Chủ Nhật)',
+    }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('contact_settings')
+      .select('*')
+      .limit(1)
+      .single()
+
+    if (error) {
+      // If no settings exist, return defaults
+      if (error.code === 'PGRST116') {
+        return {
+          phone: '0932501411',
+          whatsappPhone: '84932501411',
+          whatsappMessage: 'Xin chào, tôi muốn tư vấn về...',
+          instagramUrl: 'https://www.instagram.com/hieuthien.1802/',
+          address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+          workingHours: '09:00 — 19:00 (Thứ 2 - Chủ Nhật)',
+        }
+      }
+      throw error
+    }
+
+    return {
+      id: data.id,
+      phone: data.phone,
+      whatsappPhone: data.whatsapp_phone,
+      whatsappMessage: data.whatsapp_message,
+      instagramUrl: data.instagram_url,
+      address: data.address,
+      workingHours: data.working_hours,
+      updatedAt: data.updated_at,
+    }
+  } catch (error) {
+    console.error('Error reading contact settings from Supabase:', error)
+    return {
+      phone: '0932501411',
+      whatsappPhone: '84932501411',
+      whatsappMessage: 'Xin chào, tôi muốn tư vấn về...',
+      instagramUrl: 'https://www.instagram.com/hieuthien.1802/',
+      address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+      workingHours: '09:00 — 19:00 (Thứ 2 - Chủ Nhật)',
+    }
+  }
+}
+
+export async function updateContactSettings(input: {
+  phone: string
+  whatsappPhone: string
+  whatsappMessage: string
+  instagramUrl: string
+  address: string
+  workingHours: string
+}): Promise<ContactSettings> {
+  if (!supabase) {
+    return {
+      phone: input.phone,
+      whatsappPhone: input.whatsappPhone,
+      whatsappMessage: input.whatsappMessage,
+      instagramUrl: input.instagramUrl,
+      address: input.address,
+      workingHours: input.workingHours,
+    }
+  }
+
+  try {
+    // First check if settings exist
+    const { data: existing } = await supabase
+      .from('contact_settings')
+      .select('id')
+      .limit(1)
+      .single()
+
+    let result
+
+    if (existing) {
+      // Update existing
+      const { data, error } = await supabase
+        .from('contact_settings')
+        .update({
+          phone: input.phone,
+          whatsapp_phone: input.whatsappPhone,
+          whatsapp_message: input.whatsappMessage,
+          instagram_url: input.instagramUrl,
+          address: input.address,
+          working_hours: input.workingHours,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existing.id)
+        .select()
+        .single()
+
+      if (error) throw error
+      result = data
+    } else {
+      // Insert new
+      const { data, error } = await supabase
+        .from('contact_settings')
+        .insert({
+          phone: input.phone,
+          whatsapp_phone: input.whatsappPhone,
+          whatsapp_message: input.whatsappMessage,
+          instagram_url: input.instagramUrl,
+          address: input.address,
+          working_hours: input.workingHours,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      result = data
+    }
+
+    return {
+      id: result.id,
+      phone: result.phone,
+      whatsappPhone: result.whatsapp_phone,
+      whatsappMessage: result.whatsapp_message,
+      instagramUrl: result.instagram_url,
+      address: result.address,
+      workingHours: result.working_hours,
+      updatedAt: result.updated_at,
+    }
+  } catch (error) {
+    console.error('Error updating contact settings in Supabase:', error)
+    throw error
   }
 }
