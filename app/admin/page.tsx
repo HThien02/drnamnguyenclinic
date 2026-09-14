@@ -746,6 +746,12 @@ export default function AdminPage() {
           </div>
         </header>
 
+        {message && (
+          <div role="alert" className="mt-5 rounded-2xl border border-[#e5b7b7] bg-[#fff7f7] px-4 py-3 text-sm font-semibold text-[#9f3030] shadow-sm">
+            {message}
+          </div>
+        )}
+
         {/* Navigation Tabs */}
         <nav className="mt-6 flex flex-wrap gap-2 border-b border-[#dce8f2] pb-1">
           <button

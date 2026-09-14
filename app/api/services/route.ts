@@ -33,6 +33,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('[v0] Create service failed:', error)
     const detail = [error?.message, error?.code, error?.details].filter(Boolean).join(' — ')
-    return NextResponse.json({ success: false, error: detail || 'Không thể tạo dịch vụ.' }, { status: 400 })
+    const friendly = error?.code === '23505' ? 'Slug dịch vụ đã tồn tại. Vui lòng chọn slug khác.' : detail || 'Không thể tạo dịch vụ.'
+    return NextResponse.json({ success: false, error: friendly }, { status: error?.code === '23505' ? 409 : 400 })
   }
 }
