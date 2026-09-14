@@ -219,72 +219,38 @@ export default function Home() {
   return (
   <main id="top" className="min-h-screen overflow-hidden bg-[#f6faff] text-[#172a42]">
       {/* Header */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-[#dce8f2]/80 bg-[#f6faff]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1320px] items-center justify-between px-6 py-4 lg:px-10">
-          <a href="#top" className="flex items-center gap-2 font-serif text-xl font-semibold text-[#0e3a63]">
-            <span>Dr. Nam Nguyen</span>
-            <span className="rounded bg-[#0e5d94]/10 px-2 py-0.5 font-sans text-[10px] font-bold uppercase tracking-[0.25em] text-[#1873aa]">
-              Clinic
-            </span>
-          </a>
+      ```tsx
+<header className="fixed inset-x-0 top-0 z-50 border-b border-[#dce8f2]/80 bg-[#f6faff]/90 backdrop-blur-xl">
+  <div className="mx-auto flex max-w-[1320px] items-center justify-between px-6 py-4 lg:px-10">
 
-          <nav className="hidden items-center gap-8 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#55738f] lg:flex">
-            {t.nav.map((item, i) => (
-              <a
-                key={item}
-                href={['#services', '#results', '#stories', '#contact'][i]}
-                className="transition-colors hover:text-[#0e5d94]"
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
+    {/* LEFT */}
+    <a
+      href="#top"
+      className="flex items-center gap-2 font-serif text-xl font-semibold text-[#0e3a63]"
+    >
+      <span>Dr. Nam Nguyen</span>
+      <span className="rounded bg-[#0e5d94]/10 px-2 py-0.5 font-sans text-[10px] font-bold uppercase tracking-[0.25em] text-[#1873aa]">
+        Clinic
+      </span>
+    </a>
 
-          <div className="flex items-center gap-3">
-            {visibility.booking !== false && (
-              <a
-                href="#booking"
-                className="hidden rounded-full bg-[#0e5d94] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-md transition-all hover:bg-[#0c4e7d] hover:shadow-lg sm:block"
-              >
-                {t.cta}
-              </a>
-            )}
+    {/* RIGHT */}
+    <nav className="flex items-center gap-8 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#55738f]">
+      {t.nav.map((item, i) => (
+        <a
+          key={item}
+          href={['#services', '#results', '#stories', '#contact'][i]}
+          className="transition-colors hover:text-[#0e5d94]"
+        >
+          {item}
+        </a>
+      ))}
+    </nav>
 
-            <button
-              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="rounded-full p-2 text-[#0e3a63] lg:hidden"
-            >
-              {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
-            </button>
-          </div>
-        </div>
+  </div>
+</header>
+```
 
-        {/* Mobile Navigation Menu */}
-        {menuOpen && (
-          <nav className="flex flex-col gap-5 border-t border-[#dce8f2] bg-[#f6faff] px-6 py-6 text-xs font-semibold uppercase tracking-[0.15em] lg:hidden">
-            {t.nav.map((item, i) => (
-              <a
-                key={item}
-                onClick={() => setMenuOpen(false)}
-                href={['#services', '#results', '#stories', '#contact'][i]}
-                className="py-1 text-[#0e3a63]"
-              >
-                {item}
-              </a>
-            ))}
-          {visibility.booking !== false && (
-            <a
-              onClick={() => setMenuOpen(false)}
-              href="#booking"
-              className="mt-2 inline-block rounded-xl bg-[#0e5d94] py-3 text-center text-white"
-            >
-              {t.cta}
-            </a>
-          )}
-          </nav>
-        )}
-      </header>
 
       {/* Hero Section */}
       {visibility.hero !== false && (
