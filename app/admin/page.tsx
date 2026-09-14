@@ -202,7 +202,7 @@ export default function AdminPage() {
       setServiceForm(emptyService)
       setMessage('Đã lưu dịch vụ thành công vào database.')
     } catch (error) {
-      setMessage(error instanceof DOMException && error.name === 'AbortError' ? 'Lưu dịch vụ quá thời gian chờ. Vui lòng kiểm tra Supabase rồi thử lại.' : error instanceof Error ? error.message : 'Không thể lưu dịch vụ.')
+      setMessage(error instanceof DOMException && error.name === 'AbortError' ? 'Lưu dịch vụ quá thời gian chờ. Vui lòng kiểm tra Supabase rồi thử lại.' : error instanceof Error ? `Lưu dịch vụ thất bại: ${error.message}` : 'Không thể lưu dịch vụ.')
     } finally { setIsSavingService(false) }
   }
 
@@ -642,7 +642,7 @@ export default function AdminPage() {
           <div className="flex size-14 items-center justify-center rounded-2xl bg-[#eaf5fb] text-[#0e5d94]">
             <ShieldCheck className="size-8" />
           </div>
-          <h1 className="mt-6 font-serif text-3xl font-bold text-[#0e3a63]">Đăng nhập Qu���n trị</h1>
+          <h1 className="mt-6 font-serif text-3xl font-bold text-[#0e3a63]">Đăng nhập Quản trị</h1>
           <p className="mt-2 text-sm leading-6 text-[#66829a]">
             Khu vực quản lý thông tin bệnh nhân và cài đặt nội dung phòng khám Dr. Nam Nguyen Clinic.
           </p>

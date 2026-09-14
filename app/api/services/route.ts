@@ -30,5 +30,9 @@ export async function POST(request: Request) {
     if (price !== null && (!Number.isFinite(price) || price < 0)) throw new Error('Price is invalid.')
     const service = await createService({ name: body.name.trim(), slug: body.slug.trim(), category: body.category, shortDescription: body.shortDescription.trim(), image: body.image.trim(), highlights: list(body.highlights), suitableFor: list(body.suitableFor), techniques: list(body.techniques), recovery: typeof body.recovery === 'string' ? body.recovery.trim() : '', risksAndConsiderations: list(body.risksAndConsiderations), preConsultation: typeof body.preConsultation === 'string' ? body.preConsultation.trim() : '', price, currency: typeof body.currency === 'string' && body.currency.trim() ? body.currency.trim().toUpperCase() : 'USD', priceDisplayType: body.priceDisplayType, displayOrder: Number(body.displayOrder), isActive: body.isActive !== false })
     return NextResponse.json({ success: true, service }, { status: 201 })
-  } catch (error: any) { return NextResponse.json({ success: false, error: error.message || 'Không thể tạo dịch vụ.' }, { status: 400 }) }
+  } catch (error: any) {
+    console.error('[v0] Create service failed:', error)
+    const detail = [error?.message, error?.code, error?.details].filter(Boolean).join(' — ')
+    return NextResponse.json({ success: false, error: detail || 'Không thể tạo dịch vụ.' }, { status: 400 })
+  }
 }
