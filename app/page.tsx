@@ -882,9 +882,6 @@ export default function Home() {
               <p className="mt-3 text-sm text-[#8ca8be]">
                 {contactSettings.address}
               </p>
-              <p className="mt-1 text-xs text-[#6b869c]">
-                Giấy phép hoạt động khám chữa bệnh chuyên khoa Da liễu số: 08264/HCM-GPHĐ
-              </p>
             </div>
 
             <div className="flex flex-col items-start gap-4 text-sm md:items-end">
