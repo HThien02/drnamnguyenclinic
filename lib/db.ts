@@ -524,7 +524,7 @@ function mapService(row: any): ServiceItem {
 
 export async function getServices(includeInactive = false): Promise<ServiceItem[]> {
   if (!supabase) return initialSeedServices.filter((service) => includeInactive || service.isActive).sort((a, b) => a.displayOrder - b.displayOrder)
-  try { let query = supabase.from('services').select('*').order('display_order', { ascending: true }); if (!includeInactive) query = query.eq('is_active', true); const { data, error } = await query; if (error) throw error; return (data || []).map(mapService) } catch { return initialSeedServices.filter((service) => includeInactive || service.isActive).sort((a, b) => a.displayOrder - b.displayOrder) }
+  try { let query = supabase.from('services').select('*').order('display_order', { ascending: true }); if (!includeInactive) query = query.eq('is_active', true); const { data, error } = await query; if (error) throw error; return (data || []).map(mapService)   } catch (error) { console.error('[v0] Failed to load services from Supabase:', error); throw error }
 }
 
 export async function createService(input: Omit<ServiceItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceItem> {

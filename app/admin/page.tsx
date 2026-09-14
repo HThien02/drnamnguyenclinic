@@ -178,16 +178,25 @@ export default function AdminPage() {
 
   async function saveService(event: React.FormEvent) {
     event.preventDefault()
-    const payload = { ...serviceForm, price: serviceForm.price === '' ? null : Number(serviceForm.price), displayOrder: Number(serviceForm.displayOrder), highlights: serviceForm.highlights.split('\n'), suitableFor: serviceForm.suitableFor.split('\n'), techniques: serviceForm.techniques.split('\n'), risksAndConsiderations: serviceForm.risksAndConsiderations.split('\n') }
-    const res = await fetch(editingServiceId ? `/api/services/${editingServiceId}` : '/api/services', { method: editingServiceId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` }, body: JSON.stringify(payload) })
-    const data = await res.json()
-    if (data.success) { setShowServiceForm(false); setEditingServiceId(undefined); setServiceForm(emptyService); loadServices(); setMessage('Service saved successfully.') } else alert(data.error || 'Unable to save service.')
+    const payload = { ...serviceForm, price: serviceForm.price === '' ? null : Number(serviceForm.price), displayOrder: Number(serviceForm.displayOrder), highlights: serviceForm.highlights.split('\n').map((value) => value.trim()).filter(Boolean), suitableFor: serviceForm.suitableFor.split('\n').map((value) => value.trim()).filter(Boolean), techniques: serviceForm.techniques.split('\n').map((value) => value.trim()).filter(Boolean), risksAndConsiderations: serviceForm.risksAndConsiderations.split('\n').map((value) => value.trim()).filter(Boolean) }
+    if (!payload.name.trim() || !payload.slug.trim() || !payload.shortDescription.trim() || !payload.image.trim()) { setMessage('Vui lòng điền tên, slug, mô tả ngắn và tải ảnh dịch vụ lên.'); return }
+    try {
+      const res = await fetch(editingServiceId ? `/api/services/${editingServiceId}` : '/api/services', { method: editingServiceId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` }, body: JSON.stringify(payload) })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Không thể lưu dịch vụ.')
+      setShowServiceForm(false); setEditingServiceId(undefined); setServiceForm(emptyService); await loadServices(); setMessage('Đã lưu dịch vụ thành công.')
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể lưu dịch vụ.') }
   }
 
   async function removeService(id: string) {
     if (!confirm('Are you sure you want to delete this service?')) return
-    const res = await fetch(`/api/services/${id}`, { method: 'DELETE', headers: { authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` } })
-    if ((await res.json()).success) loadServices()
+    try {
+      const res = await fetch(`/api/services/${id}`, { method: 'DELETE', headers: { authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` } })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Không thể xóa dịch vụ.')
+      await loadServices()
+      setMessage('Đã xóa dịch vụ thành công.')
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể xóa dịch vụ.') }
   }
 
   async function loadBookings() {
@@ -822,7 +831,7 @@ export default function AdminPage() {
               </div>
               <div className="mt-5 grid gap-4 border-t border-[#dce8f2] pt-5 sm:grid-cols-3"><label className="block text-xs font-bold text-[#0e3a63]">Giá hiển thị<input value={serviceForm.price} onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })} className="mt-1.5 w-full rounded-xl border border-[#c8dcea] px-3 py-2.5 text-sm font-normal" /></label><label className="block text-xs font-bold text-[#0e3a63]">Kiểu giá<select value={serviceForm.priceDisplayType} onChange={(e) => setServiceForm({ ...serviceForm, priceDisplayType: e.target.value as 'contact' | 'from' | 'exact' })} className="mt-1.5 w-full rounded-xl border border-[#c8dcea] px-3 py-2.5 text-sm font-normal"><option value="contact">Liên hệ</option><option value="from">Từ mức giá</option><option value="exact">Giá cố định</option></select></label><label className="block text-xs font-bold text-[#0e3a63]">Thứ tự hiển thị<input value={serviceForm.displayOrder} onChange={(e) => setServiceForm({ ...serviceForm, displayOrder: e.target.value })} className="mt-1.5 w-full rounded-xl border border-[#c8dcea] px-3 py-2.5 text-sm font-normal" /></label></div><div className="mt-5 flex flex-wrap items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm font-bold text-[#0e3a63]"><input type="checkbox" checked={serviceForm.isActive} onChange={(e) => setServiceForm({ ...serviceForm, isActive: e.target.checked })} /> Hiển thị dịch vụ</label><div className="flex gap-2"><button type="button" onClick={() => setShowServiceForm(false)} className="rounded-xl border border-[#c8dcea] px-4 py-2.5 text-sm font-bold text-[#66829a]">Hủy</button><button className="rounded-xl bg-[#0e5d94] px-5 py-2.5 text-sm font-bold text-white">Lưu dịch vụ</button></div></div>
             </form>}
-            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{services.map((service) => <article key={service.id} className="rounded-2xl border border-[#dce8f2] p-5"><p className="text-xs font-bold uppercase tracking-wider text-[#1873aa]">{service.category}</p><h3 className="mt-2 font-serif text-xl font-bold text-[#0e3a63]">{service.name}</h3><p className="mt-2 text-sm text-[#66829a]">{service.shortDescription}</p><div className="mt-4 flex gap-2"><button type="button" onClick={() => { setEditingServiceId(service.id); setServiceForm({ ...service, highlights: service.highlights.join('\n'), suitableFor: service.suitableFor.join('\n'), techniques: service.techniques.join('\n'), risksAndConsiderations: service.risksAndConsiderations.join('\n'), price: service.price?.toString() || '', displayOrder: service.displayOrder.toString() }); setShowServiceForm(true) }} className="rounded-lg border border-[#c8dcea] px-3 py-2 text-xs font-bold text-[#0e5d94]">Edit</button><button type="button" onClick={() => service.id && removeService(service.id)} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600">Delete</button></div></article>)}</div>
+            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{services.map((service) => <article key={service.id} className="rounded-2xl border border-[#dce8f2] p-5"><p className="text-xs font-bold uppercase tracking-wider text-[#1873aa]">{service.category}</p><h3 className="mt-2 font-serif text-xl font-bold text-[#0e3a63]">{service.name}</h3><p className="mt-2 text-sm text-[#66829a]">{service.shortDescription}</p><div className="mt-4 flex gap-2"><button type="button" onClick={() => { setEditingServiceId(service.id); setServiceForm({ name: service.name, slug: service.slug, category: service.category, shortDescription: service.shortDescription, image: service.image, highlights: service.highlights.join('\n'), suitableFor: service.suitableFor.join('\n'), techniques: service.techniques.join('\n'), recovery: service.recovery, risksAndConsiderations: service.risksAndConsiderations.join('\n'), preConsultation: service.preConsultation, price: service.price?.toString() || '', currency: service.currency, priceDisplayType: service.priceDisplayType, displayOrder: service.displayOrder.toString(), isActive: service.isActive }); setShowServiceForm(true) }} className="rounded-lg border border-[#c8dcea] px-3 py-2 text-xs font-bold text-[#0e5d94]">Edit</button><button type="button" onClick={() => service.id && removeService(service.id)} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600">Delete</button></div></article>)}</div>
           </section>
         )}
 

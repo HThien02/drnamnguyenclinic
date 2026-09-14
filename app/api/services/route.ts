@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     if (!validText(body.slug) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(body.slug.trim())) throw new Error('Slug không hợp lệ.')
-    if (!validText(body.name) || !validText(body.shortDescription) || !validText(body.image)) throw new Error('Please provide the required service information.')
+    if (!validText(body.name) || !validText(body.shortDescription) || !validText(body.image, 1)) throw new Error('Vui lòng nhập đủ tên, mô tả và tải ảnh dịch vụ lên.')
     if (!categories.has(body.category) || !priceTypes.has(body.priceDisplayType) || !Number.isInteger(Number(body.displayOrder))) throw new Error('Category, price type, or display order is invalid.')
     const price = body.price === null || body.price === '' ? null : Number(body.price)
     if (price !== null && (!Number.isFinite(price) || price < 0)) throw new Error('Price is invalid.')
