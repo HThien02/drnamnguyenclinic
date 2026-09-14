@@ -139,9 +139,15 @@ export default function AdminPage() {
   }, [authed])
 
   async function loadServices() {
-    const res = await fetch('/api/services?all=true', { headers: { authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` } })
-    const data = await res.json()
-    if (data.success) setServices(data.services)
+    try {
+      const res = await fetch('/api/services?all=true', { headers: { authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` } })
+      const data = await res.json().catch(() => ({ success: false, error: 'Server returned an invalid response.' }))
+      if (!res.ok || !data.success) throw new Error(data.error || 'Không thể tải danh sách dịch vụ.')
+      setServices(Array.isArray(data.services) ? data.services : [])
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Không thể tải danh sách dịch vụ.')
+      setServices([])
+    }
   }
 
   async function loadVisibility() {
@@ -183,8 +189,12 @@ export default function AdminPage() {
     try {
       const res = await fetch(editingServiceId ? `/api/services/${editingServiceId}` : '/api/services', { method: editingServiceId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` }, body: JSON.stringify(payload) })
       const data = await res.json()
-      if (!res.ok || !data.success) throw new Error(data.error || 'Không thể lưu dịch vụ.')
-      setShowServiceForm(false); setEditingServiceId(undefined); setServiceForm(emptyService); await loadServices(); setMessage('Đã lưu dịch vụ thành công.')
+      if (!res.ok || !data.success) throw new Error(data.error || `Không thể lưu dịch vụ (HTTP ${res.status}).`)
+      setShowServiceForm(false)
+      setEditingServiceId(undefined)
+      setServiceForm(emptyService)
+      await loadServices()
+      setMessage('Đã lưu dịch vụ thành công.')
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể lưu dịch vụ.') }
   }
 
@@ -624,7 +634,7 @@ export default function AdminPage() {
           <div className="flex size-14 items-center justify-center rounded-2xl bg-[#eaf5fb] text-[#0e5d94]">
             <ShieldCheck className="size-8" />
           </div>
-          <h1 className="mt-6 font-serif text-3xl font-bold text-[#0e3a63]">Đăng nhập Quản trị</h1>
+          <h1 className="mt-6 font-serif text-3xl font-bold text-[#0e3a63]">Đăng nhập Qu���n trị</h1>
           <p className="mt-2 text-sm leading-6 text-[#66829a]">
             Khu vực quản lý thông tin bệnh nhân và cài đặt nội dung phòng khám Dr. Nam Nguyen Clinic.
           </p>

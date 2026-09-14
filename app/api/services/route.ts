@@ -10,8 +10,13 @@ function adminToken(request: Request) { return request.headers.get('authorizatio
 function validText(value: unknown, min = 2) { return typeof value === 'string' && value.trim().length >= min }
 
 export async function GET(request: Request) {
-  const includeInactive = new URL(request.url).searchParams.get('all') === 'true'
-  return NextResponse.json({ success: true, services: await getServices(includeInactive) })
+  try {
+    const includeInactive = new URL(request.url).searchParams.get('all') === 'true'
+    return NextResponse.json({ success: true, services: await getServices(includeInactive) })
+  } catch (error) {
+    console.error('[v0] Failed to load services:', error)
+    return NextResponse.json({ success: false, error: 'Bảng services chưa sẵn sàng trong Supabase. Hãy chạy SQL tạo bảng services.' }, { status: 503 })
+  }
 }
 
 export async function POST(request: Request) {
