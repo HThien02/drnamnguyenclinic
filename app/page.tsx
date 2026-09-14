@@ -69,11 +69,11 @@ export default function Home() {
 
   // Contact settings (synced from Admin)
   const [contactSettings, setContactSettings] = useState<ContactSettings>({
-    phone: '0932501411',
-    whatsappPhone: '84932501411',
-    whatsappMessage: 'Xin chào, tôi muốn tư vấn về...',
-    instagramUrl: 'https://www.instagram.com/hieuthien.1802/',
-    address: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+    phone: '0395000500',
+    whatsappPhone: '84395000500',
+    whatsappMessage: 'Hello, I would like some advice regarding the service...',
+    instagramUrl: 'https://www.instagram.com/dr.namnguyen.vn',
+    address: 'Cư xá Bắc Hải, Hoà Hưng, TP Hồ Chí Minh',
     workingHours: '09:00 — 19:00 (Thứ 2 - Chủ Nhật)',
   })
 
