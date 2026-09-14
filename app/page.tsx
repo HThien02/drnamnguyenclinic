@@ -819,16 +819,13 @@ export default function Home() {
             <div>
               <p className="font-serif text-2xl font-bold text-white">Dr. Nam Nguyen Clinic</p>
               <p className="mt-3 text-sm text-[#8ca8be]">
-                123 Nguyễn Huệ, Phường Bến Nghé, Quận 1 · TP. Hồ Chí Minh
-              </p>
-              <p className="mt-1 text-xs text-[#6b869c]">
-                Giấy phép hoạt động khám chữa bệnh chuyên khoa Da liễu số: 08264/HCM-GPHĐ
+                Cư xá Bắc Hải, Hoà Hưng, TP Hồ Chí Minh
               </p>
             </div>
 
             <div className="flex flex-col items-start gap-4 text-sm md:items-end">
               <div>
-                <p className="font-bold text-white">Hotline: 090 123 4567</p>
+                <p className="font-bold text-white">Hotline: 0395000500</p>
                 <p className="text-xs text-[#8ca8be]">Giờ làm việc: 09:00 — 19:00 hàng ngày</p>
               </div>
 
