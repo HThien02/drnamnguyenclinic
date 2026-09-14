@@ -120,11 +120,14 @@ export default function Home() {
     fetch('/api/services')
       .then((r) => r.json())
       .then((data) => {
+        console.log('Signature services loaded:', data)
         if (data.success && Array.isArray(data.services)) {
           setSignatureServices(data.services)
         }
       })
-      .catch(() => {})
+      .catch((error) => {
+        console.error('Error loading signature services:', error)
+      })
 
     fetch('/api/contact-settings')
       .then((r) => r.json())
