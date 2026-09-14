@@ -93,6 +93,10 @@ export default function Home() {
   }, [resultIndex, results])
 
   const filteredSignatureServices = useMemo(() => {
+    console.log('Current filter:', serviceFilter)
+    console.log('All services:', signatureServices)
+    console.log('Filtered services:', serviceFilter === 'All' ? signatureServices : signatureServices.filter((svc) => svc.category === serviceFilter))
+
     if (serviceFilter === 'All') return signatureServices
     return signatureServices.filter((svc) => svc.category === serviceFilter)
   }, [signatureServices, serviceFilter])

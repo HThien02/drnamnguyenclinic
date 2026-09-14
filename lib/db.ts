@@ -478,11 +478,13 @@ export async function getSignatureServices(): Promise<SignatureService[]> {
 
     if (error) throw error
 
+    console.log('Raw services from DB:', data)
+
     return data.map((s) => ({
       id: s.id,
       name: s.name,
       slug: s.slug,
-      category: s.category as 'Facial' | 'Body',
+      category: s.category.charAt(0).toUpperCase() + s.category.slice(1).toLowerCase() as 'Facial' | 'Body',
       description: s.description,
       imageUrl: s.image_url,
       isActive: s.is_active,
@@ -513,7 +515,7 @@ export async function getAllSignatureServices(): Promise<SignatureService[]> {
       id: s.id,
       name: s.name,
       slug: s.slug,
-      category: s.category as 'Facial' | 'Body',
+      category: s.category.charAt(0).toUpperCase() + s.category.slice(1).toLowerCase() as 'Facial' | 'Body',
       description: s.description,
       imageUrl: s.image_url,
       isActive: s.is_active,
@@ -573,7 +575,7 @@ export async function createSignatureService(input: {
       id: data.id,
       name: data.name,
       slug: data.slug,
-      category: data.category as 'Facial' | 'Body',
+      category: data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase() as 'Facial' | 'Body',
       description: data.description,
       imageUrl: data.image_url,
       isActive: data.is_active,
@@ -641,7 +643,7 @@ export async function updateSignatureService(
       id: data.id,
       name: data.name,
       slug: data.slug,
-      category: data.category as 'Facial' | 'Body',
+      category: data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase() as 'Facial' | 'Body',
       description: data.description,
       imageUrl: data.image_url,
       isActive: data.is_active,
