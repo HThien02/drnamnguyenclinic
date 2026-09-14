@@ -752,34 +752,40 @@ export async function updateContactSettings(input: {
   }
 
   try {
-    // First check if settings exist
-    const { data: existing } = await supabase
+    // First check if settings exist using count
+    const { count } = await supabase
       .from('contact_settings')
-      .select('id')
-      .limit(1)
-      .single()
+      .select('*', { count: 'exact', head: true })
 
     let result
 
-    if (existing) {
-      // Update existing
-      const { data, error } = await supabase
+    if (count && count > 0) {
+      // Update existing - get the first row's id
+      const { data: existing } = await supabase
         .from('contact_settings')
-        .update({
-          phone: input.phone,
-          whatsapp_phone: input.whatsappPhone,
-          whatsapp_message: input.whatsappMessage,
-          instagram_url: input.instagramUrl,
-          address: input.address,
-          working_hours: input.workingHours,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id)
-        .select()
+        .select('id')
+        .limit(1)
         .single()
 
-      if (error) throw error
-      result = data
+      if (existing) {
+        const { data, error } = await supabase
+          .from('contact_settings')
+          .update({
+            phone: input.phone,
+            whatsapp_phone: input.whatsappPhone,
+            whatsapp_message: input.whatsappMessage,
+            instagram_url: input.instagramUrl,
+            address: input.address,
+            working_hours: input.workingHours,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        result = data
+      }
     } else {
       // Insert new
       const { data, error } = await supabase
