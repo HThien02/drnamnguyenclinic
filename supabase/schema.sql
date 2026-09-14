@@ -45,6 +45,13 @@ CREATE TABLE IF NOT EXISTS services (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public can view services" ON services;
+CREATE POLICY "Public can view services" ON services FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admin can manage services" ON services;
+CREATE POLICY "Admin can manage services" ON services FOR ALL USING (true) WITH CHECK (true);
+GRANT SELECT, INSERT, UPDATE, DELETE ON services TO anon, authenticated;
+
 -- Doctor profile images
 CREATE TABLE IF NOT EXISTS doctor_images (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
