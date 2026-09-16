@@ -75,7 +75,7 @@ export default function Home() {
     instagramUrl: 'https://www.instagram.com/dr.namnguyen.vn',
     address: 'Cư xá Bắc Hải, Hoà Hưng, TP Hồ Chí Minh',
     workingHours: '09:00 — 19:00 (Thứ 2 - Chủ Nhật)',
-  })
+  })r
 
   const t = copy[language] || copy.vi
 
