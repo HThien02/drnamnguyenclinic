@@ -566,6 +566,7 @@ export default function AdminPage() {
   // Save contact settings
   async function saveContactSettings() {
     try {
+      if (!contactSettings.phone.trim() || !contactSettings.address.trim() || !contactSettings.workingHours.trim()) { setMessage('Vui lòng nhập số điện thoại, địa chỉ và giờ làm việc.'); return }
       const response = await fetch('/api/contact-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` }, body: JSON.stringify(contactSettings) })
       const data = await response.json()
       if (!response.ok || !data.success) throw new Error(data.error || 'Không thể lưu thông tin liên hệ.')
