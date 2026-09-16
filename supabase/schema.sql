@@ -53,7 +53,7 @@ CREATE POLICY "Admin can manage services" ON services FOR ALL USING (true) WITH 
 GRANT SELECT, INSERT, UPDATE, DELETE ON services TO anon, authenticated;
 
 CREATE TABLE IF NOT EXISTS contact_settings (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   phone TEXT NOT NULL,
   whatsapp_phone TEXT NOT NULL DEFAULT '',
   whatsapp_message TEXT NOT NULL DEFAULT '',
@@ -66,12 +66,12 @@ ALTER TABLE contact_settings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public can view contact settings" ON contact_settings;
 CREATE POLICY "Public can view contact settings" ON contact_settings FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Admin can update contact settings" ON contact_settings;
-CREATE POLICY "Admin can update contact settings" ON contact_settings FOR UPDATE USING (id = 1) WITH CHECK (id = 1);
+CREATE POLICY "Admin can update contact settings" ON contact_settings FOR UPDATE USING (true) WITH CHECK (true);
 GRANT SELECT ON contact_settings TO anon, authenticated;
 GRANT UPDATE ON contact_settings TO authenticated;
 INSERT INTO contact_settings (id, phone, whatsapp_phone, whatsapp_message, instagram_url, address, working_hours)
-VALUES (1, '0932501411', '84932501411', 'Xin chào, tôi muốn tư vấn về...', 'https://www.instagram.com/hieuthien.1802/', '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh', '09:00 — 19:00 (Thứ 2 - Chủ Nhật)')
-ON CONFLICT (id) DO NOTHING;
+VALUES (gen_random_uuid(), '0932501411', '84932501411', 'Xin chào, tôi muốn tư vấn về...', 'https://www.instagram.com/hieuthien.1802/', '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh', '09:00 — 19:00 (Thứ 2 - Chủ Nhật)')
+ON CONFLICT DO NOTHING;
 
 -- Doctor profile images
 CREATE TABLE IF NOT EXISTS doctor_images (
