@@ -125,8 +125,7 @@ export default function Home() {
     loadHomepageData()
 
     try {
-      const savedContact = localStorage.getItem('clinic-contact')
-      if (savedContact) setContactSettings(JSON.parse(savedContact))
+    fetch('/api/contact-settings').then((response) => response.json()).then((data) => { if (data.success) setContactSettings(data.settings) }).catch(() => undefined)
     } catch {
       // Ignore storage read errors.
     }

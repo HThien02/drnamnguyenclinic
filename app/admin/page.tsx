@@ -120,9 +120,8 @@ export default function AdminPage() {
       const savedTracking = localStorage.getItem('clinic-tracking')
       if (savedTracking) setTracking(JSON.parse(savedTracking))
 
-      const savedContact = localStorage.getItem('clinic-contact')
-      if (savedContact) setContactSettings(JSON.parse(savedContact))
       loadDoctorImages()
+      fetch('/api/contact-settings').then((response) => response.json()).then((data) => { if (data.success) setContactSettings(data.settings) }).catch(() => undefined)
     } catch {
       // Ignore
     }
@@ -565,9 +564,14 @@ export default function AdminPage() {
   }
 
   // Save contact settings
-  function saveContactSettings() {
-    localStorage.setItem('clinic-contact', JSON.stringify(contactSettings))
-    setMessage('Đã cập nhật thông tin liên hệ thành công.')
+  async function saveContactSettings() {
+    try {
+      const response = await fetch('/api/contact-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${sessionStorage.getItem('admin-token') || ''}` }, body: JSON.stringify(contactSettings) })
+      const data = await response.json()
+      if (!response.ok || !data.success) throw new Error(data.error || 'Không thể lưu thông tin liên hệ.')
+      setContactSettings(data.settings)
+      setMessage('Đã cập nhật thông tin liên hệ vào database.')
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể lưu thông tin liên hệ.') }
   }
 
   // Export CSV

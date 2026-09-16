@@ -2,6 +2,22 @@ import { supabase } from './supabase'
 import type { Booking, BookingStatus, ResultItem, ReviewItem, ServiceItem, ServiceCategory } from '@/types/clinic'
 
 // Initial seed data for fallback when Supabase is not configured
+export type ContactSettingsRow = { id: number; phone: string; whatsappPhone: string; whatsappMessage: string; instagramUrl: string; address: string; workingHours: string }
+
+export async function getContactSettings(): Promise<ContactSettingsRow> {
+  if (!supabase) throw new Error('Supabase chưa được cấu hình.')
+  const { data, error } = await supabase.from('contact_settings').select('*').eq('id', 1).single()
+  if (error) throw error
+  return { id: data.id, phone: data.phone, whatsappPhone: data.whatsapp_phone, whatsappMessage: data.whatsapp_message, instagramUrl: data.instagram_url, address: data.address, workingHours: data.working_hours }
+}
+
+export async function updateContactSettings(settings: Omit<ContactSettingsRow, 'id'>): Promise<ContactSettingsRow> {
+  if (!supabase) throw new Error('Supabase chưa được cấu hình.')
+  const { data, error } = await supabase.from('contact_settings').update({ phone: settings.phone, whatsapp_phone: settings.whatsappPhone, whatsapp_message: settings.whatsappMessage, instagram_url: settings.instagramUrl, address: settings.address, working_hours: settings.workingHours, updated_at: new Date().toISOString() }).eq('id', 1).select('*').single()
+  if (error) throw error
+  return { id: data.id, phone: data.phone, whatsappPhone: data.whatsapp_phone, whatsappMessage: data.whatsapp_message, instagramUrl: data.instagram_url, address: data.address, workingHours: data.working_hours }
+}
+
 export type DoctorImage = { id: string; imageUrl: string; displayOrder: number; isPrimary: boolean }
 
 export async function getDoctorImages(): Promise<DoctorImage[]> {
